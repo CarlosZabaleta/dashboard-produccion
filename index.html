@@ -337,6 +337,7 @@
   <button class="tab" onclick="switchTab('productos')">📦 Por Producto</button>
   <button class="tab" onclick="switchTab('diario')">📈 Evolución Diaria</button>
   <button class="tab" onclick="switchTab('detalle')">🗂️ Detalle</button>
+  <button class="tab" onclick="switchTab('kg')">⚖️ KG Producidos</button>
 </div>
 
 <div class="content">
@@ -538,13 +539,88 @@
 
   </div>
 
+  <!-- TAB: KG PRODUCIDOS -->
+  <div id="tab-kg" class="tab-panel">
+
+    <div class="filters">
+      <span class="filter-label">Filtrar por mes:</span>
+      <div id="kgMonthFilterBtns" style="display:inline-flex;gap:8px;flex-wrap:wrap">
+        <button class="filter-btn active" onclick="filtrarKGMes('todos', this)">Todos</button>
+        <button class="filter-btn" onclick="filtrarKGMes('2026-04', this)">Abril</button>
+        <button class="filter-btn" onclick="filtrarKGMes('2026-05', this)">Mayo</button>
+      </div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card" style="--kpi-color: #6c63ff">
+        <div class="kpi-label">Total KG Producidos</div>
+        <div class="kpi-value" id="kgTotal">—</div>
+        <div class="kpi-sub" id="kgPeriodoSub">Período completo</div>
+        <div class="kpi-icon">⚖️</div>
+      </div>
+      <div class="kpi-card" style="--kpi-color: #00d4aa">
+        <div class="kpi-label">Promedio Diario</div>
+        <div class="kpi-value" id="kgAvg">—</div>
+        <div class="kpi-sub">kg/día promedio</div>
+        <div class="kpi-icon">📊</div>
+      </div>
+      <div class="kpi-card" style="--kpi-color: #ffd166">
+        <div class="kpi-label">Mejor Día</div>
+        <div class="kpi-value" id="kgMax">—</div>
+        <div class="kpi-sub" id="kgMaxFecha">—</div>
+        <div class="kpi-icon">🏆</div>
+      </div>
+      <div class="kpi-card" style="--kpi-color: #ff6b6b">
+        <div class="kpi-label">Promedio Mensual</div>
+        <div class="kpi-value" id="kgAvgMes">—</div>
+        <div class="kpi-sub">kg/mes promedio</div>
+        <div class="kpi-icon">📅</div>
+      </div>
+    </div>
+
+    <div class="chart-card" style="margin-bottom:16px">
+      <div class="chart-title">Evolución de KG Diarios</div>
+      <div class="chart-subtitle">Kilogramos producidos por día hábil — con línea de tendencia promedio</div>
+      <div class="chart-container tall">
+        <canvas id="chartKGDiario"></canvas>
+      </div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-title">KG por Mes</div>
+        <div class="chart-subtitle">Total de kilogramos acumulados por mes</div>
+        <div class="chart-container">
+          <canvas id="chartKGMes"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">KG por Semana</div>
+        <div class="chart-subtitle">Distribución semanal de kilogramos producidos</div>
+        <div class="chart-container">
+          <canvas id="chartKGSemanal"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">KG Acumulados</div>
+      <div class="chart-subtitle">Curva de crecimiento total en kilogramos del período</div>
+      <div class="chart-container">
+        <canvas id="chartKGAcum"></canvas>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
 <script>
 // ============================================================
 // CONFIGURATION
 // ============================================================
-const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1UnmceONjjrVrHcN6cUmaWie6m4e1swogyfuazpWk0-E/gviz/tq?tqx=out:csv&sheet=HISTORICO';
+const SHEET_URL    = 'https://docs.google.com/spreadsheets/d/1UnmceONjjrVrHcN6cUmaWie6m4e1swogyfuazpWk0-E/gviz/tq?tqx=out:csv&sheet=HISTORICO';
+const KG_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1UnmceONjjrVrHcN6cUmaWie6m4e1swogyfuazpWk0-E/gviz/tq?tqx=out:csv&sheet=KG_DIARIOS';
 
 // ============================================================
 // GLOBAL STATE (populated by loadData)
@@ -554,7 +630,12 @@ let PRODUCT_DATA = {};
 let MES_DATA     = {};
 let TOTAL        = 0;
 let DIAS_ACTIVOS = 0;
-let ALL_RECORDS  = []; // [{id, fecha, hora, mes, producto, cajas, turno}]
+let ALL_RECORDS  = [];
+// KG state
+let KG_DATA  = {};   // {fecha: kg}
+let KG_MES   = {};   // {mes: totalKg}
+let KG_TOTAL = 0;
+let KG_DIAS  = 0; // [{id, fecha, hora, mes, producto, cajas, turno}]
 
 // ============================================================
 // FALLBACK DATA — last verified snapshot (Abr–May 2026)
@@ -564,6 +645,9 @@ const FB_PRODUCTS = {"TOSTADA CLASICA LIBERA":11346,"TOSTADA CLASICA 2 HERMANOS"
 const FB_MES   = {"2026-04":11866,"2026-05":16455};
 const FB_TOTAL = 28321;
 const FB_DIAS  = 39;
+
+// KG fallback (verified snapshot from KG_DIARIOS, Apr–May 2026)
+const FB_KG = {"2026-04-01":1151.64,"2026-04-07":1151.64,"2026-04-08":1232.28,"2026-04-09":1288.56,"2026-04-10":115.92,"2026-04-11":161.28,"2026-04-13":1120.56,"2026-04-14":1028.16,"2026-04-15":1086.96,"2026-04-16":1171.80,"2026-04-17":1146.60,"2026-04-20":1412.88,"2026-04-21":1246.56,"2026-04-22":1449.84,"2026-04-23":1426.32,"2026-04-24":1377.60,"2026-04-27":1624.00,"2026-04-28":1270.08,"2026-04-29":1160.88,"2026-04-30":1160.88,"2026-05-04":2005.92,"2026-05-05":1702.40,"2026-05-06":1879.92,"2026-05-07":1888.32,"2026-05-08":1764.00,"2026-05-09":1088.64,"2026-05-11":2041.20,"2026-05-12":1985.76,"2026-05-13":1842.96,"2026-05-14":2069.76,"2026-05-15":4702.04,"2026-05-16":1063.44,"2026-05-18":1900.08,"2026-05-19":1817.76,"2026-05-20":1478.40,"2026-05-21":1451.52,"2026-05-22":1431.36,"2026-05-26":1106.28,"2026-05-27":1667.40,"2026-05-28":1968.96};
 
 // Fallback individual records (real data from sheet — partial, covers Apr 1–16)
 const FB_RAW = [
@@ -640,11 +724,22 @@ function applyFallback() {
   MES_DATA     = Object.assign({}, FB_MES);
   TOTAL        = FB_TOTAL;
   DIAS_ACTIVOS = FB_DIAS;
-  // Convert FB_RAW to ALL_RECORDS format
   ALL_RECORDS = FB_RAW.map(r => {
     const p = parseDateTime(r[1]);
     return { id: r[0], fecha: p.fecha, hora: p.hora, mes: p.mes, producto: r[2], cajas: r[3], turno: r[4] };
   });
+}
+
+function applyKGFallback() {
+  KG_DATA  = Object.assign({}, FB_KG);
+  KG_MES   = {};
+  KG_TOTAL = 0;
+  Object.entries(FB_KG).forEach(([fecha, kg]) => {
+    const mes = fecha.slice(0, 7);
+    KG_MES[mes]  = (KG_MES[mes] || 0) + kg;
+    KG_TOTAL    += kg;
+  });
+  KG_DIAS = Object.keys(FB_KG).length;
 }
 
 // ============================================================
@@ -688,70 +783,85 @@ function parseDateTime(str) {
 async function loadData() {
   showLoading(true);
   hideError();
-  try {
-    const resp = await fetch(SHEET_URL + '&_=' + Date.now()); // cache-bust
-    if (!resp.ok) throw new Error('HTTP ' + resp.status);
-    const text = await resp.text();
 
-    const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
-    if (lines.length < 2) throw new Error('Hoja vacía o sin datos');
+  const ts = '&_=' + Date.now();
+  const [histRes, kgRes] = await Promise.allSettled([
+    fetch(SHEET_URL + ts).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }),
+    fetch(KG_SHEET_URL + ts).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+  ]);
 
-    const seen = new Set();
-    const recs = [];
-
-    for (let i = 1; i < lines.length; i++) {   // skip header row
-      const c = parseCSVLine(lines[i]);
-      if (c.length < 4) continue;
-
-      const id       = c[0].trim();
-      const dtStr    = c[1].trim();
-      const producto = (c[2] || '').trim().toUpperCase();
-      const cajas    = parseInt(c[3], 10);
-      const turno    = (c[4] || '').trim();
-
-      if (!id || isNaN(cajas) || cajas <= 0) continue;
-      if (producto.startsWith('INS')) continue;   // exclude insumos
-      if (seen.has(id)) continue;                 // deduplicate
-
-      const { fecha, hora, mes } = parseDateTime(dtStr);
-      if (mes === '2026-03') continue;            // exclude March
-
-      seen.add(id);
-      recs.push({ id, fecha, hora, mes, producto, cajas, turno });
-    }
-
-    if (recs.length === 0) throw new Error('Sin registros válidos tras filtrado');
-
-    // Build aggregations
-    ALL_RECORDS  = recs.sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
-    DAYS_DATA    = {};
-    PRODUCT_DATA = {};
-    MES_DATA     = {};
-    TOTAL        = 0;
-    recs.forEach(r => {
-      DAYS_DATA[r.fecha]       = (DAYS_DATA[r.fecha]       || 0) + r.cajas;
-      PRODUCT_DATA[r.producto] = (PRODUCT_DATA[r.producto] || 0) + r.cajas;
-      MES_DATA[r.mes]          = (MES_DATA[r.mes]          || 0) + r.cajas;
-      TOTAL += r.cajas;
-    });
-    DIAS_ACTIVOS = Object.keys(DAYS_DATA).length;
-
-    // Timestamp
-    const now = new Date();
-    const lu = document.getElementById('lastUpdated');
-    if (lu) lu.textContent = '🔄 ' + now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-
-  } catch (e) {
-    console.warn('Sheet fetch failed:', e.message);
+  // --- HISTORICO ---
+  if (histRes.status === 'fulfilled') {
+    try {
+      const text  = histRes.value;
+      const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
+      if (lines.length < 2) throw new Error('Hoja vacía');
+      const seen = new Set();
+      const recs = [];
+      for (let i = 1; i < lines.length; i++) {
+        const c = parseCSVLine(lines[i]);
+        if (c.length < 4) continue;
+        const id       = c[0].trim();
+        const dtStr    = c[1].trim();
+        const producto = (c[2] || '').trim().toUpperCase();
+        const cajas    = parseInt(c[3], 10);
+        const turno    = (c[4] || '').trim();
+        if (!id || isNaN(cajas) || cajas <= 0) continue;
+        if (producto.startsWith('INS')) continue;
+        if (seen.has(id)) continue;
+        const { fecha, hora, mes } = parseDateTime(dtStr);
+        if (mes === '2026-03') continue;
+        seen.add(id);
+        recs.push({ id, fecha, hora, mes, producto, cajas, turno });
+      }
+      if (recs.length === 0) throw new Error('Sin registros');
+      ALL_RECORDS  = recs.sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+      DAYS_DATA = {}; PRODUCT_DATA = {}; MES_DATA = {}; TOTAL = 0;
+      recs.forEach(r => {
+        DAYS_DATA[r.fecha]       = (DAYS_DATA[r.fecha]       || 0) + r.cajas;
+        PRODUCT_DATA[r.producto] = (PRODUCT_DATA[r.producto] || 0) + r.cajas;
+        MES_DATA[r.mes]          = (MES_DATA[r.mes]          || 0) + r.cajas;
+        TOTAL += r.cajas;
+      });
+      DIAS_ACTIVOS = Object.keys(DAYS_DATA).length;
+    } catch (e) { console.warn('HISTORICO parse failed:', e.message); applyFallback(); }
+  } else {
+    console.warn('HISTORICO fetch failed:', histRes.reason.message);
     applyFallback();
-    showError(
-      '⚠️  No se pudo actualizar desde Google Sheets. ' +
-      'Asegurate de que el documento esté compartido como <strong>"Cualquier persona con el enlace → Lector"</strong>. ' +
-      'Mostrando último caché guardado.'
-    );
-    const lu = document.getElementById('lastUpdated');
-    if (lu) lu.textContent = '📦 Caché';
+    showError('⚠️  No se pudo actualizar desde Google Sheets. Asegurate de que el documento esté compartido como <strong>"Cualquier persona con el enlace → Lector"</strong>. Mostrando último caché.');
   }
+
+  // --- KG_DIARIOS ---
+  if (kgRes.status === 'fulfilled') {
+    try {
+      const text  = kgRes.value;
+      const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
+      KG_DATA = {}; KG_MES = {}; KG_TOTAL = 0;
+      for (let i = 1; i < lines.length; i++) {
+        const c = parseCSVLine(lines[i]);
+        if (c.length < 3) continue;
+        const dateStr = (c[1] || '').trim();
+        const kg      = parseFloat((c[2] || '0').replace(',', '.'));
+        if (!dateStr || isNaN(kg) || kg <= 0) continue;
+        const { fecha, mes } = parseDateTime(dateStr + ' 00:00:00');
+        if (mes === '2026-03') continue;
+        KG_DATA[fecha]  = (KG_DATA[fecha] || 0) + kg;
+        KG_MES[mes]     = (KG_MES[mes]    || 0) + kg;
+        KG_TOTAL       += kg;
+      }
+      KG_DIAS = Object.keys(KG_DATA).length;
+      if (KG_DIAS === 0) throw new Error('Sin datos KG');
+    } catch (e) { console.warn('KG_DIARIOS parse failed:', e.message); applyKGFallback(); }
+  } else {
+    console.warn('KG_DIARIOS fetch failed:', kgRes.reason.message);
+    applyKGFallback();
+  }
+
+  // Timestamp
+  const now = new Date();
+  const lu  = document.getElementById('lastUpdated');
+  if (lu) lu.textContent = (histRes.status === 'fulfilled' ? '🔄 ' : '📦 Caché ') +
+    now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
 
   showLoading(false);
   renderDashboard();
@@ -813,6 +923,27 @@ function renderDashboard() {
   if (g('kpiLibera'))    g('kpiLibera').textContent    = liberaTotal.toLocaleString('es-AR');
   if (g('kpiLiberaSub')) g('kpiLiberaSub').textContent = `cajas — ${(liberaTotal / TOTAL * 100).toFixed(0)}% del total`;
 
+  // KG KPIs
+  if (KG_DIAS > 0) {
+    const kgAvgVal = KG_TOTAL / KG_DIAS;
+    const kgMeses  = Object.keys(KG_MES);
+    const kgAvgMesVal = kgMeses.length ? KG_TOTAL / kgMeses.length : 0;
+    const kgMaxEntry  = Object.entries(KG_DATA).sort((a,b) => b[1]-a[1])[0];
+    const fmtKG = v => v >= 1000
+      ? (v/1000).toLocaleString('es-AR', {minimumFractionDigits:1, maximumFractionDigits:1}) + ' t'
+      : Math.round(v).toLocaleString('es-AR') + ' kg';
+    if (g('kgTotal'))   g('kgTotal').textContent   = fmtKG(KG_TOTAL);
+    if (g('kgAvg'))     g('kgAvg').textContent     = Math.round(kgAvgVal).toLocaleString('es-AR') + ' kg';
+    if (g('kgAvgMes'))  g('kgAvgMes').textContent  = fmtKG(kgAvgMesVal);
+    if (kgMaxEntry) {
+      if (g('kgMax'))      g('kgMax').textContent      = fmtKG(kgMaxEntry[1]);
+      if (g('kgMaxFecha')) g('kgMaxFecha').textContent = kgMaxEntry[0].split('-').reverse().join('/');
+    }
+    const kgDates = Object.keys(KG_DATA).sort();
+    if (g('kgPeriodoSub') && kgDates.length)
+      g('kgPeriodoSub').textContent = `${kgDates[0].split('-').reverse().join('/')} → ${kgDates[kgDates.length-1].split('-').reverse().join('/')}`;
+  }
+
   // Rebuild month filter buttons
   rebuildMonthFilters();
 
@@ -837,6 +968,17 @@ function rebuildMonthFilters() {
     html += `<button class="filter-btn" onclick="filtrarMes('${m}', this)">${MN[+mo]}</button>`;
   });
   container.innerHTML = html;
+
+  // Also rebuild KG month filter buttons
+  const kgContainer = document.getElementById('kgMonthFilterBtns');
+  if (!kgContainer) return;
+  const kgMeses = Object.keys(KG_MES).sort();
+  let kgHtml = '<button class="filter-btn active" onclick="filtrarKGMes(\'todos\', this)">Todos</button>';
+  kgMeses.forEach(m => {
+    const [, mo] = m.split('-');
+    kgHtml += `<button class="filter-btn" onclick="filtrarKGMes('${m}', this)">${MN[+mo]}</button>`;
+  });
+  kgContainer.innerHTML = kgHtml;
 }
 
 function rebuildProductSelect() {
@@ -1206,6 +1348,105 @@ function buildTablaDetalle(prodFilter, mesFilter) {
 }
 
 // ============================================================
+// KG CHARTS
+// ============================================================
+function buildChartKGDiario(mesFilter) {
+  destroyChart('chartKGDiario');
+  let entries = Object.entries(KG_DATA).sort((a,b) => a[0].localeCompare(b[0]));
+  if (mesFilter && mesFilter !== 'todos') entries = entries.filter(([d]) => d.startsWith(mesFilter));
+  const labels = entries.map(([d]) => d.split('-').reverse().slice(0,2).join('/'));
+  const values = entries.map(([,v]) => Math.round(v));
+  const avg    = values.length ? Math.round(values.reduce((a,b)=>a+b,0)/values.length) : 0;
+  const ctx    = document.getElementById('chartKGDiario').getContext('2d');
+  chartInstances['chartKGDiario'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { type:'bar',  label:'KG producidos', data:values, backgroundColor:'rgba(0,212,170,0.7)', borderRadius:6, borderSkipped:false, order:2 },
+        { type:'line', label:'Promedio',       data:values.map(()=>avg), borderColor:'#ffd166', borderWidth:2, borderDash:[6,3], pointRadius:0, fill:false, order:1 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend: { display:true, position:'top', labels:{boxWidth:12,padding:16,font:{size:11}} },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y.toLocaleString('es-AR')} kg` } }
+      },
+      scales: {
+        x: { grid:{display:false}, ticks:{font:{size:10},maxRotation:45} },
+        y: { grid:{color:'#1e2235'}, ticks:{callback: v => v>=1000?(v/1000).toFixed(1)+'t':v} }
+      }
+    }
+  });
+}
+
+function buildChartKGMes() {
+  destroyChart('chartKGMes');
+  const MN = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const sorted = Object.entries(KG_MES).sort((a,b)=>a[0].localeCompare(b[0]));
+  const labels = sorted.map(([m]) => { const [y,mo]=m.split('-'); return MN[+mo]+' '+y; });
+  const values = sorted.map(([,v]) => Math.round(v));
+  const ctx    = document.getElementById('chartKGMes').getContext('2d');
+  chartInstances['chartKGMes'] = new Chart(ctx, {
+    type:'bar',
+    data: { labels, datasets:[{ label:'KG', data:values, backgroundColor:COLORS, borderRadius:10, borderSkipped:false }] },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toLocaleString('es-AR')} kg`}} },
+      scales: {
+        x:{grid:{display:false}},
+        y:{grid:{color:'#1e2235'}, ticks:{callback:v=>v>=1000?(v/1000).toFixed(1)+'t':v}}
+      }
+    }
+  });
+}
+
+function buildChartKGSemanal() {
+  destroyChart('chartKGSemanal');
+  const weeks = {};
+  Object.entries(KG_DATA).forEach(([d,v]) => {
+    const dt = new Date(d);
+    const wk = Math.ceil(dt.getDate()/7);
+    const key = `Sem ${wk} - ${dt.toLocaleDateString('es-AR',{month:'short'})}`;
+    weeks[key] = (weeks[key]||0) + v;
+  });
+  const labels = Object.keys(weeks);
+  const values = Object.values(weeks).map(v=>Math.round(v));
+  const ctx    = document.getElementById('chartKGSemanal').getContext('2d');
+  chartInstances['chartKGSemanal'] = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{label:'KG',data:values,backgroundColor:COLORS.slice(0,labels.length),borderRadius:8,borderSkipped:false}] },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toLocaleString('es-AR')} kg`}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#1e2235'},ticks:{callback:v=>v>=1000?(v/1000).toFixed(1)+'t':v}}}
+    }
+  });
+}
+
+function buildChartKGAcum() {
+  destroyChart('chartKGAcum');
+  const entries = Object.entries(KG_DATA).sort((a,b)=>a[0].localeCompare(b[0]));
+  const labels  = entries.map(([d])=>d.split('-').reverse().slice(0,2).join('/'));
+  let acum = 0;
+  const values = entries.map(([,v])=>{ acum+=v; return Math.round(acum); });
+  const ctx  = document.getElementById('chartKGAcum').getContext('2d');
+  const grad = ctx.createLinearGradient(0,0,0,260);
+  grad.addColorStop(0,'rgba(108,99,255,0.3)');
+  grad.addColorStop(1,'rgba(108,99,255,0.0)');
+  chartInstances['chartKGAcum'] = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[{label:'KG acumulados',data:values,borderColor:'#6c63ff',backgroundColor:grad,borderWidth:2,fill:true,tension:0.3,pointRadius:0,pointHoverRadius:5}] },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toLocaleString('es-AR')} kg`}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:9},maxTicksLimit:10}},y:{grid:{color:'#1e2235'},ticks:{callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v}}}
+    }
+  });
+}
+
+// ============================================================
 // INTERACTIONS
 // ============================================================
 function switchTab(name) {
@@ -1218,6 +1459,13 @@ function switchTab(name) {
   else if (name === 'productos') { buildChartProductosBar(); buildTablaProductos(); }
   else if (name === 'diario')    { buildChartDiario('todos'); buildChartSemanal(); buildChartAcum(); }
   else if (name === 'detalle')   { buildTablaDetalle('', ''); }
+  else if (name === 'kg')        { buildChartKGDiario('todos'); buildChartKGMes(); buildChartKGSemanal(); buildChartKGAcum(); }
+}
+
+function filtrarKGMes(mes, btn) {
+  document.querySelectorAll('#kgMonthFilterBtns .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildChartKGDiario(mes);
 }
 
 function filtrarMes(mes, btn) {
