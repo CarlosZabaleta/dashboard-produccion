@@ -902,7 +902,7 @@ function renderDashboard() {
 
   // Tab 2 product KPIs
   const sorted = Object.entries(PRODUCT_DATA).sort((a, b) => b[1] - a[1]);
-  const shorten = s => s.replace(/^TOSTADA /, '').replace(/^TOSTADITA /, 'TSTADITA ').replace(/^REBOZADOR /, 'REBOZADOR ');
+  const shorten = s => s.replace(/^TOSTADA /, '').replace(/^TOSTADITA /, 'Tostadita ').replace(/^REBOZADOR /, 'REBOZADOR ');
   const podium = [
     ['kpiProd1Name', 'kpiProd1Sub'],
     ['kpiProd2Name', 'kpiProd2Sub'],
@@ -1151,7 +1151,7 @@ function buildChartTopDias() {
 function buildChartProductosBar() {
   destroyChart('chartProductosBar');
   const sorted = Object.entries(PRODUCT_DATA).sort((a, b) => b[1] - a[1]);
-  const labels = sorted.map(([l]) => l.replace('TOSTADA ', '').replace('TOSTADITA ', 'TSTADITA '));
+  const labels = sorted.map(([l]) => l.replace(/^TOSTADA /, '').replace(/^TOSTADITA /, 'Tostadita '));
   const values = sorted.map(([, v]) => v);
   const ctx = document.getElementById('chartProductosBar').getContext('2d');
   chartInstances['chartProductosBar'] = new Chart(ctx, {
