@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard de Producción</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iIzBkMTExNyIvPgogIDxyZWN0IHg9IjIuNSIgeT0iMjEiIHdpZHRoPSI2LjUiIGhlaWdodD0iOC41IiByeD0iMS41IiBmaWxsPSIjMWY2ZmViIi8+CiAgPHJlY3QgeD0iMTIuNSIgeT0iMTEiIHdpZHRoPSI2LjUiIGhlaWdodD0iMTguNSIgcng9IjEuNSIgZmlsbD0iIzU4YTZmZiIvPgogIDxyZWN0IHg9IjIyLjUiIHk9IjE2IiB3aWR0aD0iNi41IiBoZWlnaHQ9IjEzLjUiIHJ4PSIxLjUiIGZpbGw9IiMzODhiZmQiLz4KICA8bGluZSB4MT0iMiIgeTE9IjMwIiB4Mj0iMzAiIHkyPSIzMCIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBvbHlsaW5lIHBvaW50cz0iNS43NSwxOSAxNS43NSw5LjUgMjUuNzUsMTQuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM2ZiOTUwIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPg==">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
   :root {
@@ -31,11 +32,11 @@
   }
 
   body {
-    background: linear-gradient(-45deg, #0f1117, #1a1240, #0d1f35, #1e0d2e, #0a1628, #0f1117);
+    background: linear-gradient(-45deg, #151c2e, #1e1650, #112840, #261040, #0d1f3c, #151c2e);
     background-size: 500% 500%;
     animation: gradientFlow 20s ease infinite;
     color: var(--text);
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
     padding: 0 0 40px;
   }
@@ -124,20 +125,24 @@
     padding: 10px 20px;
     border-radius: 8px 8px 0 0;
     cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    color: #6b7a99;
     border: 1px solid transparent;
     border-bottom: none;
     transition: all 0.2s;
     background: transparent;
   }
-  .tab:hover { color: var(--text); background: var(--card); }
+  .tab:hover { color: #a8b8d8; background: var(--card); }
   .tab.active {
-    color: var(--accent);
+    color: #7dd3fc;
     background: var(--card);
     border-color: var(--border);
-    border-bottom: 2px solid var(--accent);
+    border-bottom: 2px solid #7dd3fc;
+    text-shadow: 0 0 12px rgba(125,211,252,0.4);
   }
 
   /* CONTENT */
@@ -1678,9 +1683,4 @@ function logDrawGroupedBar(id,data){const c=logGetCtx(id);if(!c)return;const{ctx
 function logBuildTable(){document.getElementById('ltbRemitos').innerHTML=LOG_REMITOS.map(r=>'<tr><td style="color:#8b949e;font-size:12px;white-space:nowrap">'+r.f+'</td><td><strong>'+r.c+'</strong></td><td><span class="lttag">'+r.t+'</span></td><td>'+(r.n==='-'?'<span class="lbadge lb-gray">-</span>':'<span class="lbadge lb-blue">'+r.n+'</span>')+'</td><td>'+(r.o?'<span class="lbadge lb-orange">'+r.o+'</span>':'<span style="color:#8b949e;font-size:12px">-</span>')+'</td><td style="text-align:right;font-weight:700;color:#58a6ff">'+r.v.toLocaleString('es-AR')+'</td></tr>').join('');}
 function logUpdateKPIs(mes){const d=LOG_KPI_MES[mes]||LOG_KPI_MES.todos;document.getElementById('lkCajas').textContent=d.cajas.toLocaleString('es-AR');document.getElementById('lkRemitos').textContent=d.remitos;document.getElementById('lkClientes').textContent=d.clientes;document.getElementById('lkProm').textContent=d.prom.toLocaleString('es-AR');['lkCajasSub','lkRemitosSub','lkClientesSub','lkPromSub'].forEach(id=>document.getElementById(id).textContent=d.sub);}
 function logFiltrar(mes,btn){document.querySelectorAll('.log-filter-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');logUpdateKPIs(mes);const entries=Object.entries(LOG_ALL_DIAS).filter(([d])=>mes==='todos'||d.startsWith(mes));logDrawBarV('lcDiario',entries.map(([d])=>{const p=d.split('-');return p[2]*1+'/'+p[1]*1;}),entries.map(([,v])=>v));}
-function initLogistica(){logUpdateKPIs('todos');const ae=Object.entries(LOG_ALL_DIAS);logDrawBarV('lcDiario',ae.map(([d])=>{const p=d.split('-');return p[2]*1+'/'+p[1]*1;}),ae.map(([,v])=>v));logDrawDonut('lcProductos',LOG_PRODUCTOS);logDrawBarH('lcClientes',[...LOG_CLIENTES].sort((a,b)=>b[1]-a[1]));logDrawPie('lcTransporte',LOG_TRANSPORTES);logDrawHeatmap('lcHeatmap');logDrawGroupedBar('lcClientesMes',LOG_CLIENTES_MES);logBuildTable();}
-window.addEventListener('resize',()=>{const active=document.querySelector('.tab-panel.active');if(active&&active.id==='tab-logistica'){initLogistica();}});
-loadData();
-</script>
-</body>
-</html>
+function initLogistica(){logUpdateKPIs('todos');const ae=Object.entries(LOG_ALL_DIAS);logDrawBarV('lcDiario',ae.map(([d])=>{const p=d.split('-');return p[2]*1+'/'+p[1]*1;}),ae.map(([,v])=>v));logDrawDonut('lcProductos',LOG_PRODUCTOS);logDrawBarH('lcClientes',[...LOG_CLIENTES].sort((a,b)=>b[1]-a[1]));logDrawPie('lcTransporte',LOG_TRANSPORTES);logDrawHe
