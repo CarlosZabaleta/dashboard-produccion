@@ -1465,4 +1465,213 @@ function buildTablaDetalle(prodFilter, mesFilter) {
 
   let filtered = ALL_RECORDS;
   if (prodFilter) filtered = filtered.filter(r => r.producto === prodFilter);
-  if (mesFilter)  filtered = fil
+  if (mesFilter)  filtered = filtered.filter(r => r.mes === mesFilter);
+
+  subtitle.textContent = `Mostrando ${filtered.length.toLocaleString('es-AR')} registros`;
+
+  tbody.innerHTML = filtered.map((r, i) => {
+    const pill = pillMap[r.producto] || 'pill-purple';
+    const fechaFmt = r.fecha.split('-').reverse().join('/');
+    const horaFmt  = r.hora.substring(0, 5);
+    return `<tr>
+      <td style="color:var(--text-muted)">${i + 1}</td>
+      <td style="font-weight:600">${fechaFmt}</td>
+      <td style="color:var(--text-muted)">${horaFmt}</td>
+      <td><span class="pill ${pill}" style="font-size:10px">${r.producto}</span></td>
+      <td style="font-weight:700;color:var(--accent)">${r.cajas}</td>
+      <td><span class="pill pill-teal" style="font-size:10px">${r.turno}</span></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" class="empty-state">No hay registros para el filtro seleccionado</td></tr>';
+}
+
+// ============================================================
+// KG CHARTS
+// ============================================================
+function buildChartKGDiario(mesFilter) {
+  destroyChart('chartKGDiario');
+  let entries = Object.entries(KG_DATA).sort((a,b) => a[0].localeCompare(b[0]));
+  if (mesFilter && mesFilter !== 'todos') entries = entries.filter(([d]) => d.startsWith(mesFilter));
+  const labels = entries.map(([d]) => d.split('-').reverse().slice(0,2).join('/'));
+  const values = entries.map(([,v]) => Math.round(v));
+  const avg    = values.length ? Math.round(values.reduce((a,b)=>a+b,0)/values.length) : 0;
+  const ctx    = document.getElementById('chartKGDiario').getContext('2d');
+  chartInstances['chartKGDiario'] = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { type:'bar',  label:'KG producidos', data:values, backgroundColor:'rgba(0,212,170,0.7)', borderRadius:6, borderSkipped:false, order:2 },
+        { type:'line', label:'Promedio',       data:values.map(()=>avg), borderColor:'#ffd166', borderWidth:2, borderDash:[6,3], pointRadius:0, fill:false, order:1 }
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: {
+        legend: { display:true, position:'top', labels:{boxWidth:12,padding:16,font:{size:11}} },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y.toLocaleString('es-AR')} kg` } }
+      },
+      scales: {
+        x: { grid:{display:false}, ticks:{font:{size:10},maxRotation:45} },
+        y: { grid:{color:'#1e2235'}, ticks:{callback: v => v>=1000?(v/1000).toFixed(1)+'t':v} }
+      }
+    }
+  });
+}
+
+function buildChartKGMes() {
+  destroyChart('chartKGMes');
+  const MN = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const sorted = Object.entries(KG_MES).sort((a,b)=>a[0].localeCompare(b[0]));
+  const labels = sorted.map(([m]) => { const [y,mo]=m.split('-'); return MN[+mo]+' '+y; });
+  const values = sorted.map(([,v]) => Math.round(v));
+  const ctx    = document.getElementById('chartKGMes').getContext('2d');
+  chartInstances['chartKGMes'] = new Chart(ctx, {
+    type:'bar',
+    data: { labels, datasets:[{ label:'KG', data:values, backgroundColor:COLORS, borderRadius:10, borderSkipped:false }] },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toLocaleString('es-AR')} kg`}} },
+      scales: {
+        x:{grid:{display:false}},
+        y:{grid:{color:'#1e2235'}, ticks:{callback:v=>v>=1000?(v/1000).toFixed(1)+'t':v}}
+      }
+    }
+  });
+}
+
+function buildChartKGSemanal() {
+  destroyChart('chartKGSemanal');
+  const weeks = {};
+  Object.entries(KG_DATA).forEach(([d,v]) => {
+    const dt = new Date(d);
+    const wk = Math.ceil(dt.getDate()/7);
+    const key = `Sem ${wk} - ${dt.toLocaleDateString('es-AR',{month:'short'})}`;
+    weeks[key] = (weeks[key]||0) + v;
+  });
+  const labels = Object.keys(weeks);
+  const values = Object.values(weeks).map(v=>Math.round(v));
+  const ctx    = document.getElementById('chartKGSemanal').getContext('2d');
+  chartInstances['chartKGSemanal'] = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{label:'KG',data:values,backgroundColor:COLORS.slice(0,labels.length),borderRadius:8,borderSkipped:false}] },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toLocaleString('es-AR')} kg`}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#1e2235'},ticks:{callback:v=>v>=1000?(v/1000).toFixed(1)+'t':v}}}
+    }
+  });
+}
+
+function buildChartKGAcum() {
+  destroyChart('chartKGAcum');
+  const entries = Object.entries(KG_DATA).sort((a,b)=>a[0].localeCompare(b[0]));
+  const labels  = entries.map(([d])=>d.split('-').reverse().slice(0,2).join('/'));
+  let acum = 0;
+  const values = entries.map(([,v])=>{ acum+=v; return Math.round(acum); });
+  const ctx  = document.getElementById('chartKGAcum').getContext('2d');
+  const grad = ctx.createLinearGradient(0,0,0,260);
+  grad.addColorStop(0,'rgba(108,99,255,0.3)');
+  grad.addColorStop(1,'rgba(108,99,255,0.0)');
+  chartInstances['chartKGAcum'] = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[{label:'KG acumulados',data:values,borderColor:'#6c63ff',backgroundColor:grad,borderWidth:2,fill:true,tension:0.3,pointRadius:0,pointHoverRadius:5}] },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toLocaleString('es-AR')} kg`}}},
+      scales:{x:{grid:{display:false},ticks:{font:{size:9},maxTicksLimit:10}},y:{grid:{color:'#1e2235'},ticks:{callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v}}}
+    }
+  });
+}
+
+// ============================================================
+// INTERACTIONS
+// ============================================================
+function switchTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+
+  if      (name === 'resumen')   { buildChartMeses(); buildChartDonut(); buildChartTopDias(); }
+  else if (name === 'productos') { buildChartProductosBar(); buildTablaProductos(); }
+  else if (name === 'diario')    { buildChartDiario('todos'); buildChartSemanal(); buildChartAcum(); }
+  else if (name === 'detalle')   { buildTablaDetalle('', ''); }
+  else if (name === 'kg')        { buildChartKGDiario('todos'); buildChartKGMes(); buildChartKGSemanal(); buildChartKGAcum(); }
+  else if (name === 'logistica') { initLogistica(); }
+}
+
+function filtrarKGMes(mes, btn) {
+  document.querySelectorAll('#kgMonthFilterBtns .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildChartKGDiario(mes);
+}
+
+function filtrarMes(mes, btn) {
+  document.querySelectorAll('#monthFilterBtns .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  buildChartDiario(mes);
+}
+
+function filtrarTablaDetalle() {
+  const prod = document.getElementById('filtroProductoTabla').value;
+  const mes  = document.getElementById('filtroMesTabla').value;
+  buildTablaDetalle(prod, mes);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+});
+
+// ============================================================
+// LOGÍSTICA — Canvas 2D charts (no external deps)
+// ============================================================
+const LOG_ALL_DIAS = {
+  '2026-04-15':410,'2026-04-16':520,'2026-04-17':350,
+  '2026-04-20':180,'2026-04-21':280,'2026-04-22':640,
+  '2026-04-23':450,'2026-04-24':380,'2026-04-28':590,
+  '2026-04-29':1240,'2026-04-30':500,
+  '2026-05-04':680,'2026-05-05':450,'2026-05-06':320,
+  '2026-05-07':580,'2026-05-08':870,'2026-05-12':400,
+  '2026-05-13':550,'2026-05-14':780,'2026-05-15':1080,
+  '2026-05-16':460,'2026-05-19':390,'2026-05-20':720,
+  '2026-05-21':680,'2026-05-22':450,'2026-05-23':540,
+  '2026-05-26':380,'2026-05-27':620,'2026-05-28':530,
+  '2026-05-29':480,'2026-05-30':370,
+  '2026-06-01':580,'2026-06-02':920,'2026-06-03':450,
+  '2026-06-04':380,'2026-06-05':520,'2026-06-09':610,
+  '2026-06-10':480,'2026-06-11':720,'2026-06-12':640,
+  '2026-06-13':500,'2026-06-16':390,'2026-06-17':850,
+  '2026-06-18':1480,'2026-06-19':490
+};
+const LOG_PRODUCTOS=[['CLASICA LIBERA',11800,'#58a6ff'],['DULCE LIBERA',3900,'#3fb950'],['REBOZADOR LIBERA',3600,'#d29922'],['SIN SAL LIBERA',2400,'#bc8cff'],['Tostadita CLASICA LIB',1900,'#f778ba'],['CLASICA 2 HERMANOS',1700,'#f85149'],['Tostadita SIN SAL LIB',650,'#79c0ff'],['SIN SAL 2 HERMANOS',480,'#56d364']];
+const LOG_CLIENTES=[['Hamsa',7100],['HyS Representaciones SRL',4200],['Santa Fe Mdo.Mayorista',3100],['Orcos s.a.s',2300],['La Pujanza',1750],['Millan',1400],['Signos',1150],['Evelin Serruya',850],['Diego Grondona',580],['Otros',2000]];
+const LOG_TRANSPORTES=[['Damotta',38,'#58a6ff'],['Hamsa',25,'#3fb950'],['Propio',17,'#d29922'],['Garage Rock',9,'#bc8cff'],['Logística Santafesins',6,'#f778ba'],['Mostto',3,'#f85149'],['Otros',2,'#79c0ff']];
+const LOG_SEMANAS=[['S1 15/4',2950],['S2 21/4',1930],['S3 28/4',2330],['S4 4/5',2900],['S5 11/5',3270],['S6 18/5',2780],['S7 25/5',2380],['S8 1/6',2850],['S9 8/6',2950],['S10 15/6',3310]];
+const LOG_CLIENTES_MES=[{name:'Hamsa',apr:1800,may:2800,jun:2500},{name:'HyS Representaciones',apr:600,may:1900,jun:1700},{name:'Santa Fe Mdo.',apr:900,may:1100,jun:1100},{name:'Orcos s.a.s',apr:500,may:900,jun:900},{name:'La Pujanza',apr:400,may:700,jun:650},{name:'Millan',apr:340,may:600,jun:460},{name:'Signos',apr:0,may:700,jun:450}];
+const LOG_KPI_MES={'todos':{cajas:24880,remitos:86,clientes:18,prom:289,sub:'Abr 15 → Jun 19'},'2026-04':{cajas:5540,remitos:18,clientes:10,prom:308,sub:'Abril 2026'},'2026-05':{cajas:10330,remitos:41,clientes:15,prom:252,sub:'Mayo 2026'},'2026-06':{cajas:9010,remitos:27,clientes:13,prom:334,sub:'Junio 2026'}};
+const LOG_REMITOS=[{f:'19/06/2026',c:'Mel Claudio',t:'Maranzano',n:'-',o:'',v:622},{f:'18/06/2026',c:'HAMSA',t:'Damota',n:'427',o:'12 pallets',v:1480},{f:'17/06/2026',c:'Orcos s.a.s',t:'Garage Rock',n:'424',o:'',v:850},{f:'16/06/2026',c:'Signos',t:'Propio',n:'422',o:'',v:390},{f:'13/06/2026',c:'HyS Representaciones SRL',t:'Damotta',n:'418',o:'15 pallets',v:1100},{f:'12/06/2026',c:'La Pujanza',t:'Mostto',n:'416',o:'',v:640},{f:'11/06/2026',c:'Evelin Serruya',t:'Propio',n:'-',o:'Muestras',v:80},{f:'09/06/2026',c:'Santa Fe Mdo.Mayorista',t:'Log.Santafesins',n:'414',o:'8 pallets',v:610},{f:'05/06/2026',c:'Millan',t:'Damotta',n:'412',o:'',v:520},{f:'04/06/2026',c:'Orcos s.a.s',t:'Garage Rock',n:'410',o:'1 pallet',v:380}];
+const LOG_HIT_ZONES={},LOG_REDRAW_FNS={},LOG_TT_ACTIVE={};
+function logAttachTooltip(id){const canvas=document.getElementById(id);if(!canvas||canvas._ltt)return;canvas._ltt=true;canvas.addEventListener('mousemove',function(e){const rect=canvas.getBoundingClientRect();const mx=e.clientX-rect.left,my=e.clientY-rect.top;let hit=null;for(const z of(LOG_HIT_ZONES[id]||[])){if(mx>=z.x&&mx<=z.x+z.w&&my>=z.y&&my<=z.y+z.h){hit=z;break;}}const was=LOG_TT_ACTIVE[id];if(hit){canvas.style.cursor='crosshair';if(LOG_REDRAW_FNS[id])LOG_REDRAW_FNS[id]();const ctx=canvas.getContext('2d');logDrawTT(ctx,hit.x+hit.w/2,hit.y,hit.label,hit.value,canvas.getBoundingClientRect().width);LOG_TT_ACTIVE[id]=true;}else{canvas.style.cursor='default';if(was){if(LOG_REDRAW_FNS[id])LOG_REDRAW_FNS[id]();}LOG_TT_ACTIVE[id]=false;}});canvas.addEventListener('mouseleave',function(){if(LOG_TT_ACTIVE[id]){if(LOG_REDRAW_FNS[id])LOG_REDRAW_FNS[id]();}LOG_TT_ACTIVE[id]=false;canvas.style.cursor='default';});}
+function logDrawTT(ctx,cx,topY,label,value,canvasW){const v1=value.toLocaleString('es-AR')+' cajas',v2=label;ctx.font='bold 12px sans-serif';const tw1=ctx.measureText(v1).width;ctx.font='10px sans-serif';const tw2=ctx.measureText(v2).width;const bw=Math.max(tw1,tw2)+22,bh=38;let bx=cx-bw/2,by=topY-bh-10;if(bx<4)bx=4;if(bx+bw>canvasW-4)bx=canvasW-bw-4;if(by<4)by=topY+10;ctx.save();ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=10;ctx.shadowOffsetY=3;logRRect(ctx,bx,by,bw,bh,6);ctx.fillStyle='#1c2333';ctx.fill();ctx.shadowBlur=0;ctx.shadowOffsetY=0;ctx.strokeStyle='#388bfd';ctx.lineWidth=1;ctx.stroke();ctx.font='bold 12px sans-serif';ctx.fillStyle='#e6edf3';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(v1,bx+bw/2,by+6);ctx.font='10px sans-serif';ctx.fillStyle='#8b949e';ctx.fillText(v2,bx+bw/2,by+21);ctx.restore();}
+function logGetCtx(id){const canvas=document.getElementById(id);if(!canvas)return null;const W=canvas.parentElement.clientWidth||400,H=canvas.parentElement.clientHeight||200,dpr=window.devicePixelRatio||1;canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';const ctx=canvas.getContext('2d');ctx.scale(dpr,dpr);return{ctx,W,H};}
+function logRRect(ctx,x,y,w,h,r){if(w<=0||h<=0)return;r=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.arcTo(x+w,y,x+w,y+r,r);ctx.lineTo(x+w,y+h);ctx.lineTo(x,y+h);ctx.lineTo(x,y+r);ctx.arcTo(x,y,x+r,y,r);ctx.closePath();}
+function logFmt(n){return n>=1000?(n/1000).toFixed(1).replace('.0','')+'k':String(n);}
+function logDrawBarV(id,labels,values){const c=logGetCtx(id);if(!c)return;const{ctx,W,H}=c;LOG_HIT_ZONES[id]=[];const pad={t:16,r:12,b:38,l:46};const cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;const max=Math.max(...values)*1.12,n=labels.length;[0,.25,.5,.75,1].forEach(f=>{const y=pad.t+ch*(1-f);ctx.strokeStyle='#21262d';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cw,y);ctx.stroke();if(f>0){ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(logFmt(Math.round(max*f)),pad.l-5,y);}});const step=cw/n,bw=step*.62;const skip=n>30?5:n>18?3:n>10?2:1;labels.forEach((lbl,i)=>{const x=pad.l+i*step+(step-bw)/2,bh=(values[i]/max)*ch,y=pad.t+ch-bh;logRRect(ctx,x,y,bw,bh,3);ctx.fillStyle='#58a6ff33';ctx.fill();ctx.strokeStyle='#58a6ff';ctx.lineWidth=1;ctx.stroke();LOG_HIT_ZONES[id].push({x,y,w:bw,h:bh,label:lbl,value:values[i]});if(i%skip===0){ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(lbl,x+bw/2,pad.t+ch+6);}});LOG_REDRAW_FNS[id]=()=>logDrawBarV(id,labels,values);logAttachTooltip(id);}
+function logDrawDonut(id,items){const c=logGetCtx(id);if(!c)return;const{ctx,W,H}=c;const total=items.reduce((s,[,v])=>s+v,0);const cx=Math.min(W*.28,H*.48+4),cy=H/2;const rOut=Math.min(cx-10,cy-10,85),rIn=rOut*.54;let ang=-Math.PI/2;items.forEach(([,val,col])=>{const sw=(val/total)*Math.PI*2;ctx.beginPath();ctx.arc(cx,cy,rOut,ang,ang+sw);ctx.arc(cx,cy,rIn,ang+sw,ang,true);ctx.closePath();ctx.fillStyle=col;ctx.fill();ctx.strokeStyle='#161b22';ctx.lineWidth=2;ctx.stroke();ang+=sw;});const lx=cx+rOut+18,itemH=26,ly0=Math.max(4,(H-items.length*itemH)/2);items.forEach(([lbl,val,col],i)=>{const y=ly0+i*itemH;ctx.fillStyle=col;ctx.fillRect(lx,y+6,10,10);ctx.fillStyle='#e6edf3';ctx.font='10px sans-serif';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(lbl.length>18?lbl.slice(0,17)+'...':lbl,lx+15,y+4);const pct=Math.round(val/total*100);ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.fillText(pct+'%  +  '+val.toLocaleString('es-AR'),lx+15,y+16);});}
+function logDrawBarH(id,items){const c=logGetCtx(id);if(!c)return;const{ctx,W,H}=c;LOG_HIT_ZONES[id]=[];const COLS=['#58a6ff','#3fb950','#d29922','#bc8cff','#f778ba','#f85149','#79c0ff','#56d364','#e3b341','#db6d28'];const labW=Math.min(160,W*.38),valW=48;const pad={t:8,r:valW+4,b:8,l:labW+6};const cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;const n=items.length,max=Math.max(...items.map(([,v])=>v))*1.1;const step=ch/n,bh=step*.6;items.forEach(([lbl,val],i)=>{const y=pad.t+i*step+(step-bh)/2,bw=(val/max)*cw,col=COLS[i%COLS.length];logRRect(ctx,pad.l,y,bw,bh,3);ctx.fillStyle=col+'55';ctx.fill();ctx.strokeStyle=col;ctx.lineWidth=1;ctx.stroke();LOG_HIT_ZONES[id].push({x:pad.l,y,w:bw,h:bh,label:lbl,value:val});ctx.fillStyle='#e6edf3';ctx.font='11px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(lbl.length>20?lbl.slice(0,19)+'...':lbl,pad.l-6,y+bh/2);ctx.fillStyle='#8b949e';ctx.font='10px sans-serif';ctx.textAlign='left';ctx.fillText(val.toLocaleString('es-AR'),pad.l+bw+6,y+bh/2);});LOG_REDRAW_FNS[id]=()=>logDrawBarH(id,items);logAttachTooltip(id);}
+function logDrawPie(id,items){const c=logGetCtx(id);if(!c)return;const{ctx,W,H}=c;const total=items.reduce((s,[,v])=>s+v,0);const cx=Math.min(W*.28,H*.48+4),cy=H/2,r=Math.min(cx-10,cy-10,90);let ang=-Math.PI/2;items.forEach(([,val,col])=>{const sw=(val/total)*Math.PI*2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,ang,ang+sw);ctx.closePath();ctx.fillStyle=col;ctx.fill();ctx.strokeStyle='#161b22';ctx.lineWidth=2;ctx.stroke();ang+=sw;});const lx=cx+r+16,lh=Math.min(22,(H-16)/items.length),ly0=Math.max(10,(H-items.length*lh)/2);items.forEach(([lbl,val,col],i)=>{const y=ly0+i*lh;ctx.fillStyle=col;ctx.fillRect(lx,y+2,10,10);ctx.fillStyle='#e6edf3';ctx.font='10px sans-serif';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText((lbl.length>22?lbl.slice(0,21)+'...':lbl)+'  '+val+'%',lx+14,y);});}
+function logDrawLine(id,labels,values){const c=logGetCtx(id);if(!c)return;const{ctx,W,H}=c;LOG_HIT_ZONES[id]=[];const pad={t:16,r:16,b:38,l:46};const cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;const mn=Math.min(...values)*.88,mx=Math.max(...values)*1.1,rng=mx-mn;const n=labels.length;const px=i=>pad.l+(i/(n-1))*cw,py=v=>pad.t+ch*(1-(v-mn)/rng);[0,.25,.5,.75,1].forEach(f=>{const y=pad.t+ch*(1-f);ctx.strokeStyle='#21262d';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cw,y);ctx.stroke();if(f>0){ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(logFmt(Math.round(mn+rng*f)),pad.l-5,y);}});ctx.beginPath();ctx.moveTo(px(0),pad.t+ch);labels.forEach((_,i)=>ctx.lineTo(px(i),py(values[i])));ctx.lineTo(px(n-1),pad.t+ch);ctx.closePath();ctx.fillStyle='#3fb95015';ctx.fill();ctx.beginPath();ctx.moveTo(px(0),py(values[0]));for(let i=1;i<n;i++){const cp=(px(i-1)+px(i))/2;ctx.bezierCurveTo(cp,py(values[i-1]),cp,py(values[i]),px(i),py(values[i]));}ctx.strokeStyle='#3fb950';ctx.lineWidth=2.5;ctx.stroke();const R=6;labels.forEach((lbl,i)=>{const x=px(i),y=py(values[i]);ctx.beginPath();ctx.arc(x,y,R,0,Math.PI*2);ctx.fillStyle='#3fb950';ctx.fill();ctx.strokeStyle='#161b22';ctx.lineWidth=2;ctx.stroke();LOG_HIT_ZONES[id].push({x:x-R,y:y-R,w:R*2,h:R*2,label:lbl,value:values[i]});const skip=n>8?2:1;if(i%skip===0){ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(lbl,x,pad.t+ch+8);}});LOG_REDRAW_FNS[id]=()=>logDrawLine(id,labels,values);logAttachTooltip(id);}
+function logDrawHeatmap(id){const c=logGetCtx(id);if(!c)return;const{ctx,W,H}=c;LOG_HIT_ZONES[id]=[];function wkKey(ds){const d=new Date(ds+'T12:00:00');const dow=d.getDay()||7;const m=new Date(d);m.setDate(d.getDate()-(dow-1));return m.toISOString().slice(0,10);}const lookup={},weekSet=new Set();Object.entries(LOG_ALL_DIAS).forEach(([ds,cajas])=>{const d=new Date(ds+'T12:00:00');const dow=d.getDay()||7;if(dow===7)return;const wk=wkKey(ds);weekSet.add(wk);lookup[wk+'_'+dow]=cajas;});const weeks=[...weekSet].sort();const DAYS=['Lun','Mar','Mie','Jue','Vie','Sab'],DOWS=[1,2,3,4,5,6];const nW=weeks.length,nD=DAYS.length;const maxV=Math.max(...Object.values(lookup));const padL=38,padT=10,padB=32,padR=8;const cellW=(W-padL-padR)/nW,cellH=(H-padT-padB)/nD,gap=3;DAYS.forEach((d,i)=>{ctx.fillStyle='#8b949e';ctx.font='10px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(d,padL-6,padT+i*cellH+cellH/2);});weeks.forEach((wk,wi)=>{const start=new Date(wk+'T12:00:00');const end=new Date(start);end.setDate(start.getDate()+5);const sd=start.getDate(),sm=start.getMonth()+1;const ed=end.getDate(),em=end.getMonth()+1;const lbl=sm===em?(sd+'-'+ed+'/'+sm):(sd+'/'+sm+'-'+ed+'/'+em);ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(lbl,padL+wi*cellW+cellW/2,H-padB+4);});weeks.forEach((wk,wi)=>{DOWS.forEach((dow,di)=>{const val=lookup[wk+'_'+dow]||0;const x=padL+wi*cellW+gap/2,y=padT+di*cellH+gap/2;const w=cellW-gap,h=cellH-gap;let fill;if(val===0){fill='#1e2530';}else{const t=val/maxV;let r,g,b;if(t<0.5){const s=t*2;r=Math.round(139+s*(232-139));g=Math.round(26+s*(93-26));b=Math.round(26+s*(4-26));}else{const s=(t-.5)*2;r=Math.round(232+s*(255-232));g=Math.round(93+s*(214-93));b=Math.round(4+s*(0-4));}fill='rgb('+r+','+g+','+b+')';}logRRect(ctx,x,y,w,h,4);ctx.fillStyle=fill;ctx.fill();if(val>0){const dt=new Date(wk+'T12:00:00');dt.setDate(dt.getDate()+(dow-1));const dlbl=DAYS[di]+' '+dt.getDate()+'/'+(dt.getMonth()+1);LOG_HIT_ZONES[id].push({x,y,w,h,label:dlbl,value:val});}});});const lgW=80,lgH=8,lgX=W-padR-lgW,lgY=H-padB+18;const grad=ctx.createLinearGradient(lgX,0,lgX+lgW,0);grad.addColorStop(0,'#1e2530');grad.addColorStop(0.01,'#8b1a1a');grad.addColorStop(0.5,'#e85d04');grad.addColorStop(1,'#ffd60a');logRRect(ctx,lgX,lgY,lgW,lgH,3);ctx.fillStyle=grad;ctx.fill();ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('menor',lgX,lgY+11);ctx.textAlign='right';ctx.fillText('mayor',lgX+lgW,lgY+11);LOG_REDRAW_FNS[id]=()=>logDrawHeatmap(id);logAttachTooltip(id);}
+function logDrawGroupedBar(id,data){const c=logGetCtx(id);if(!c)return;const{ctx,W,H}=c;LOG_HIT_ZONES[id]=[];const MONTHS=['Abril','Mayo','Junio'],MKEYS=['apr','may','jun'],MCOLS=['#58a6ff','#3fb950','#d29922'];const pad={t:28,r:16,b:38,l:50};const cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;const allVals=data.flatMap(d=>MKEYS.map(k=>d[k]||0));const max=Math.max(...allVals)*1.12;[0,.25,.5,.75,1].forEach(f=>{const y=pad.t+ch*(1-f);ctx.strokeStyle='#21262d';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cw,y);ctx.stroke();if(f>0){ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(logFmt(Math.round(max*f)),pad.l-5,y);}});MONTHS.forEach((m,i)=>{const lx=W-200+i*65;ctx.fillStyle=MCOLS[i];ctx.fillRect(lx,6,10,10);ctx.fillStyle='#8b949e';ctx.font='10px sans-serif';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(m,lx+14,6);});const n=data.length,gW=cw/n,bW=gW*.8/3,gPad=gW*.1;data.forEach((d,ci)=>{const gx=pad.l+ci*gW+gPad;MKEYS.forEach((k,mi)=>{const val=d[k]||0;if(val===0)return;const x=gx+mi*bW,bh=(val/max)*ch,y=pad.t+ch-bh;logRRect(ctx,x,y,bW-1,bh,2);ctx.fillStyle=MCOLS[mi]+'55';ctx.fill();ctx.strokeStyle=MCOLS[mi];ctx.lineWidth=1;ctx.stroke();LOG_HIT_ZONES[id].push({x,y,w:bW-1,h:bh,label:d.name+' - '+MONTHS[mi],value:val});});ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.textBaseline='top';const short=d.name.length>12?d.name.slice(0,11)+'...':d.name;ctx.fillText(short,pad.l+ci*gW+gW/2,pad.t+ch+8);});LOG_REDRAW_FNS[id]=()=>logDrawGroupedBar(id,data);logAttachTooltip(id);}
+function logBuildTable(){document.getElementById('ltbRemitos').innerHTML=LOG_REMITOS.map(r=>'<tr><td style="color:#8b949e;font-size:12px;white-space:nowrap">'+r.f+'</td><td><strong>'+r.c+'</strong></td><td><span class="lttag">'+r.t+'</span></td><td>'+(r.n==='-'?'<span class="lbadge lb-gray">-</span>':'<span class="lbadge lb-blue">'+r.n+'</span>')+'</td><td>'+(r.o?'<span class="lbadge lb-orange">'+r.o+'</span>':'<span style="color:#8b949e;font-size:12px">-</span>')+'</td><td style="text-align:right;font-weight:700;color:#58a6ff">'+r.v.toLocaleString('es-AR')+'</td></tr>').join('');}
+function logUpdateKPIs(mes){const d=LOG_KPI_MES[mes]||LOG_KPI_MES.todos;document.getElementById('lkCajas').textContent=d.cajas.toLocaleString('es-AR');document.getElementById('lkRemitos').textContent=d.remitos;document.getElementById('lkClientes').textContent=d.clientes;document.getElementById('lkProm').textContent=d.prom.toLocaleString('es-AR');['lkCajasSub','lkRemitosSub','lkClientesSub','lkPromSub'].forEach(id=>document.getElementById(id).textContent=d.sub);}
+function logFiltrar(mes,btn){document.querySelectorAll('.log-filter-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');logUpdateKPIs(mes);const entries=Object.entries(LOG_ALL_DIAS).filter(([d])=>mes==='todos'||d.startsWith(mes));logDrawBarV('lcDiario',entries.map(([d])=>{const p=d.split('-');return p[2]*1+'/'+p[1]*1;}),entries.map(([,v])=>v));}
+function initLogistica(){logUpdateKPIs('todos');const ae=Object.entries(LOG_ALL_DIAS);logDrawBarV('lcDiario',ae.map(([d])=>{const p=d.split('-');return p[2]*1+'/'+p[1]*1;}),ae.map(([,v])=>v));logDrawDonut('lcProductos',LOG_PRODUCTOS);logDrawBarH('lcClientes',[...LOG_CLIENTES].sort((a,b)=>b[1]-a[1]));logDrawPie('lcTransporte',LOG_TRANSPORTES);logDrawHeatmap('lcHeatmap');logDrawGroupedBar('lcClientesMes',LOG_CLIENTES_MES);logDrawLine('lcSemanal',LOG_SEMANAS.map(s=>s[0]),LOG_SEMANAS.map(s=>s[1]));logBuildTable();}
+window.addEventListener('resize',()=>{if(document.getElementById('tab-logistica')&&document.getElementById('tab-logistica').classList.contains('active')){initLogistica();}});
+
+</script>
+</body>
+</html>
