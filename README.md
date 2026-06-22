@@ -19,7 +19,7 @@ Conectado en tiempo real al Google Sheet **APP-ARCHIVO GENERAL**, muestra:
 - Evolución semanal (línea)
 - Últimos remitos despachados
 
-### 🚚 Logística *(simulador)*
+### 🚚 Logística
 Visualización de datos de la hoja SALIDAS / SALIDAS HEADER:
 - Cajas despachadas por día
 - Mix de productos despachados (donut)

@@ -310,6 +310,50 @@
     .header { padding: 16px; }
     .tabs { padding: 12px 16px 0; overflow-x: auto; }
   }
+
+  /* ─── LOGÍSTICA TAB ─── */
+  .log-tab { font-family: inherit; }
+  .log-tab .log-filter-bar { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+  .log-tab .log-filter-label { color:#8b949e; font-size:12px; margin-right:2px; }
+  .log-tab .log-filter-btn { background:#21262d; border:1px solid #30363d; color:#8b949e; padding:5px 14px; border-radius:20px; cursor:pointer; font-size:12px; font-weight:500; transition:all .15s; }
+  .log-tab .log-filter-btn:hover { border-color:#58a6ff; color:#58a6ff; }
+  .log-tab .log-filter-btn.active { background:#1f3a5f; border-color:#58a6ff; color:#58a6ff; font-weight:700; }
+  .log-tab .log-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:12px; }
+  .log-tab .log-kpi { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:16px 18px; position:relative; overflow:hidden; }
+  .log-tab .log-kpi::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+  .log-tab .log-kpi.c-blue::before  { background:#58a6ff; }
+  .log-tab .log-kpi.c-green::before { background:#3fb950; }
+  .log-tab .log-kpi.c-orange::before{ background:#d29922; }
+  .log-tab .log-kpi.c-purple::before{ background:#bc8cff; }
+  .log-tab .log-kpi-label { color:#8b949e; font-size:11px; text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px; }
+  .log-tab .log-kpi-value { font-size:32px; font-weight:800; line-height:1; margin-bottom:5px; letter-spacing:-1px; }
+  .log-tab .log-kpi-value.c-blue   { color:#58a6ff; }
+  .log-tab .log-kpi-value.c-green  { color:#3fb950; }
+  .log-tab .log-kpi-value.c-orange { color:#d29922; }
+  .log-tab .log-kpi-value.c-purple { color:#bc8cff; }
+  .log-tab .log-kpi-sub { color:#8b949e; font-size:11px; }
+  .log-tab .log-charts-row { display:flex; gap:12px; margin-bottom:12px; }
+  .log-tab .log-chart { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:16px; flex:1; min-width:0; }
+  .log-tab .log-chart.wide { flex:2.2; }
+  .log-tab .log-chart h3 { font-size:11px; font-weight:700; color:#8b949e; text-transform:uppercase; letter-spacing:.7px; margin-bottom:12px; }
+  .log-tab .log-chart canvas { display:block; width:100% !important; }
+  .log-tab .log-table-card { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:16px; margin-bottom:12px; }
+  .log-tab .log-table-card h3 { font-size:11px; font-weight:700; color:#8b949e; text-transform:uppercase; letter-spacing:.7px; margin-bottom:12px; }
+  .log-tab .log-data-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .log-tab .log-data-table th { background:#0d1117; color:#8b949e; font-size:10px; text-transform:uppercase; letter-spacing:.5px; padding:8px 12px; text-align:left; border-bottom:1px solid #30363d; white-space:nowrap; }
+  .log-tab .log-data-table td { padding:9px 12px; border-bottom:1px solid #21262d; vertical-align:middle; }
+  .log-tab .log-data-table tr:last-child td { border-bottom:none; }
+  .log-tab .log-data-table tr:hover td { background:#21262d44; }
+  .log-tab .lbadge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .log-tab .lb-blue   { background:#1f3a5f; color:#58a6ff; }
+  .log-tab .lb-orange { background:#3d2e00; color:#d29922; }
+  .log-tab .lb-gray   { background:#21262d; color:#8b949e; }
+  .log-tab .lttag { background:#21262d; border:1px solid #30363d; color:#e6edf3; font-size:11px; padding:2px 8px; border-radius:4px; }
+  @media(max-width:900px){
+    .log-tab .log-kpi-row { grid-template-columns:repeat(2,1fr); }
+    .log-tab .log-charts-row { flex-direction:column; }
+    .log-tab .log-chart.wide { flex:1; }
+  }
 </style>
 </head>
 <body>
@@ -339,6 +383,7 @@
   <button class="tab" onclick="switchTab('diario')">📈 Evolución Diaria</button>
   <button class="tab" onclick="switchTab('detalle')">🗂️ Detalle</button>
   <button class="tab" onclick="switchTab('kg')">⚖️ KG Producidos</button>
+  <button class="tab" onclick="switchTab('logistica')">🚚 Logística</button>
 </div>
 
 <div class="content">
@@ -612,6 +657,97 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- TAB: LOGÍSTICA -->
+  <div id="tab-logistica" class="tab-panel">
+  <div class="log-tab">
+
+    <div class="log-filter-bar">
+      <span class="log-filter-label">Período:</span>
+      <button class="log-filter-btn active" onclick="logFiltrar('todos',this)">Todos</button>
+      <button class="log-filter-btn" onclick="logFiltrar('2026-04',this)">Abril 2026</button>
+      <button class="log-filter-btn" onclick="logFiltrar('2026-05',this)">Mayo 2026</button>
+      <button class="log-filter-btn" onclick="logFiltrar('2026-06',this)">Junio 2026</button>
+    </div>
+
+    <div class="log-kpi-row">
+      <div class="log-kpi c-blue">
+        <div class="log-kpi-label">📦 Cajas Despachadas</div>
+        <div class="log-kpi-value c-blue" id="lkCajas">24.880</div>
+        <div class="log-kpi-sub" id="lkCajasSub">Total del período</div>
+      </div>
+      <div class="log-kpi c-green">
+        <div class="log-kpi-label">🚛 Remitos / Envíos</div>
+        <div class="log-kpi-value c-green" id="lkRemitos">86</div>
+        <div class="log-kpi-sub" id="lkRemitosSub">Abr 15 → Jun 19</div>
+      </div>
+      <div class="log-kpi c-orange">
+        <div class="log-kpi-label">🏢 Clientes Únicos</div>
+        <div class="log-kpi-value c-orange" id="lkClientes">18</div>
+        <div class="log-kpi-sub" id="lkClientesSub">En el período</div>
+      </div>
+      <div class="log-kpi c-purple">
+        <div class="log-kpi-label">📊 Prom. Cajas/Envío</div>
+        <div class="log-kpi-value c-purple" id="lkProm">289</div>
+        <div class="log-kpi-sub" id="lkPromSub">Por remito</div>
+      </div>
+    </div>
+
+    <div class="log-charts-row">
+      <div class="log-chart wide">
+        <h3>📦 Cajas Despachadas por Día</h3>
+        <div style="position:relative;height:210px"><canvas id="lcDiario" height="210"></canvas></div>
+      </div>
+      <div class="log-chart">
+        <h3>🍩 Mix de Productos</h3>
+        <div style="position:relative;height:210px"><canvas id="lcProductos" height="210"></canvas></div>
+      </div>
+    </div>
+
+    <div class="log-charts-row">
+      <div class="log-chart">
+        <h3>🏆 Top Clientes por Cajas</h3>
+        <div style="position:relative;height:260px"><canvas id="lcClientes" height="260"></canvas></div>
+      </div>
+      <div class="log-chart">
+        <h3>🚚 Medio de Transporte</h3>
+        <div style="position:relative;height:260px"><canvas id="lcTransporte" height="260"></canvas></div>
+      </div>
+    </div>
+
+    <div class="log-charts-row">
+      <div class="log-chart">
+        <h3>🔥 Mapa de Calor — Actividad por Día y Semana &nbsp;<span style="font-weight:400;color:#484f58;text-transform:none;letter-spacing:0">(cada columna = una semana)</span></h3>
+        <div style="position:relative;height:195px"><canvas id="lcHeatmap" height="195"></canvas></div>
+      </div>
+    </div>
+
+    <div class="log-charts-row">
+      <div class="log-chart">
+        <h3>📊 Cajas por Cliente y Mes</h3>
+        <div style="position:relative;height:240px"><canvas id="lcClientesMes" height="240"></canvas></div>
+      </div>
+    </div>
+
+    <div class="log-charts-row">
+      <div class="log-chart">
+        <h3>📈 Evolución Semanal de Despachos</h3>
+        <div style="position:relative;height:190px"><canvas id="lcSemanal" height="190"></canvas></div>
+      </div>
+    </div>
+
+    <div class="log-table-card">
+      <h3>🧾 Últimos Remitos</h3>
+      <table class="log-data-table">
+        <thead>
+          <tr><th>Fecha</th><th>Cliente</th><th>Transporte</th><th>N° Remito</th><th>Observaciones</th><th style="text-align:right">Cajas</th></tr>
+        </thead>
+        <tbody id="ltbRemitos"></tbody>
+      </table>
+    </div>
+
+  </div>
   </div>
 
 </div>
@@ -1329,164 +1465,4 @@ function buildTablaDetalle(prodFilter, mesFilter) {
 
   let filtered = ALL_RECORDS;
   if (prodFilter) filtered = filtered.filter(r => r.producto === prodFilter);
-  if (mesFilter)  filtered = filtered.filter(r => r.mes === mesFilter);
-
-  subtitle.textContent = `Mostrando ${filtered.length.toLocaleString('es-AR')} registros`;
-
-  tbody.innerHTML = filtered.map((r, i) => {
-    const pill = pillMap[r.producto] || 'pill-purple';
-    const fechaFmt = r.fecha.split('-').reverse().join('/');
-    const horaFmt  = r.hora.substring(0, 5);
-    return `<tr>
-      <td style="color:var(--text-muted)">${i + 1}</td>
-      <td style="font-weight:600">${fechaFmt}</td>
-      <td style="color:var(--text-muted)">${horaFmt}</td>
-      <td><span class="pill ${pill}" style="font-size:10px">${r.producto}</span></td>
-      <td style="font-weight:700;color:var(--accent)">${r.cajas}</td>
-      <td><span class="pill pill-teal" style="font-size:10px">${r.turno}</span></td>
-    </tr>`;
-  }).join('') || '<tr><td colspan="6" class="empty-state">No hay registros para el filtro seleccionado</td></tr>';
-}
-
-// ============================================================
-// KG CHARTS
-// ============================================================
-function buildChartKGDiario(mesFilter) {
-  destroyChart('chartKGDiario');
-  let entries = Object.entries(KG_DATA).sort((a,b) => a[0].localeCompare(b[0]));
-  if (mesFilter && mesFilter !== 'todos') entries = entries.filter(([d]) => d.startsWith(mesFilter));
-  const labels = entries.map(([d]) => d.split('-').reverse().slice(0,2).join('/'));
-  const values = entries.map(([,v]) => Math.round(v));
-  const avg    = values.length ? Math.round(values.reduce((a,b)=>a+b,0)/values.length) : 0;
-  const ctx    = document.getElementById('chartKGDiario').getContext('2d');
-  chartInstances['chartKGDiario'] = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [
-        { type:'bar',  label:'KG producidos', data:values, backgroundColor:'rgba(0,212,170,0.7)', borderRadius:6, borderSkipped:false, order:2 },
-        { type:'line', label:'Promedio',       data:values.map(()=>avg), borderColor:'#ffd166', borderWidth:2, borderDash:[6,3], pointRadius:0, fill:false, order:1 }
-      ]
-    },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins: {
-        legend: { display:true, position:'top', labels:{boxWidth:12,padding:16,font:{size:11}} },
-        tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y.toLocaleString('es-AR')} kg` } }
-      },
-      scales: {
-        x: { grid:{display:false}, ticks:{font:{size:10},maxRotation:45} },
-        y: { grid:{color:'#1e2235'}, ticks:{callback: v => v>=1000?(v/1000).toFixed(1)+'t':v} }
-      }
-    }
-  });
-}
-
-function buildChartKGMes() {
-  destroyChart('chartKGMes');
-  const MN = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  const sorted = Object.entries(KG_MES).sort((a,b)=>a[0].localeCompare(b[0]));
-  const labels = sorted.map(([m]) => { const [y,mo]=m.split('-'); return MN[+mo]+' '+y; });
-  const values = sorted.map(([,v]) => Math.round(v));
-  const ctx    = document.getElementById('chartKGMes').getContext('2d');
-  chartInstances['chartKGMes'] = new Chart(ctx, {
-    type:'bar',
-    data: { labels, datasets:[{ label:'KG', data:values, backgroundColor:COLORS, borderRadius:10, borderSkipped:false }] },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins: { legend:{display:false}, tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toLocaleString('es-AR')} kg`}} },
-      scales: {
-        x:{grid:{display:false}},
-        y:{grid:{color:'#1e2235'}, ticks:{callback:v=>v>=1000?(v/1000).toFixed(1)+'t':v}}
-      }
-    }
-  });
-}
-
-function buildChartKGSemanal() {
-  destroyChart('chartKGSemanal');
-  const weeks = {};
-  Object.entries(KG_DATA).forEach(([d,v]) => {
-    const dt = new Date(d);
-    const wk = Math.ceil(dt.getDate()/7);
-    const key = `Sem ${wk} - ${dt.toLocaleDateString('es-AR',{month:'short'})}`;
-    weeks[key] = (weeks[key]||0) + v;
-  });
-  const labels = Object.keys(weeks);
-  const values = Object.values(weeks).map(v=>Math.round(v));
-  const ctx    = document.getElementById('chartKGSemanal').getContext('2d');
-  chartInstances['chartKGSemanal'] = new Chart(ctx, {
-    type:'bar',
-    data:{ labels, datasets:[{label:'KG',data:values,backgroundColor:COLORS.slice(0,labels.length),borderRadius:8,borderSkipped:false}] },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toLocaleString('es-AR')} kg`}}},
-      scales:{x:{grid:{display:false},ticks:{font:{size:10}}},y:{grid:{color:'#1e2235'},ticks:{callback:v=>v>=1000?(v/1000).toFixed(1)+'t':v}}}
-    }
-  });
-}
-
-function buildChartKGAcum() {
-  destroyChart('chartKGAcum');
-  const entries = Object.entries(KG_DATA).sort((a,b)=>a[0].localeCompare(b[0]));
-  const labels  = entries.map(([d])=>d.split('-').reverse().slice(0,2).join('/'));
-  let acum = 0;
-  const values = entries.map(([,v])=>{ acum+=v; return Math.round(acum); });
-  const ctx  = document.getElementById('chartKGAcum').getContext('2d');
-  const grad = ctx.createLinearGradient(0,0,0,260);
-  grad.addColorStop(0,'rgba(108,99,255,0.3)');
-  grad.addColorStop(1,'rgba(108,99,255,0.0)');
-  chartInstances['chartKGAcum'] = new Chart(ctx, {
-    type:'line',
-    data:{ labels, datasets:[{label:'KG acumulados',data:values,borderColor:'#6c63ff',backgroundColor:grad,borderWidth:2,fill:true,tension:0.3,pointRadius:0,pointHoverRadius:5}] },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>` ${ctx.parsed.y.toLocaleString('es-AR')} kg`}}},
-      scales:{x:{grid:{display:false},ticks:{font:{size:9},maxTicksLimit:10}},y:{grid:{color:'#1e2235'},ticks:{callback:v=>v>=1000?(v/1000).toFixed(0)+'K':v}}}
-    }
-  });
-}
-
-// ============================================================
-// INTERACTIONS
-// ============================================================
-function switchTab(name) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-' + name).classList.add('active');
-  event.target.classList.add('active');
-
-  if      (name === 'resumen')   { buildChartMeses(); buildChartDonut(); buildChartTopDias(); }
-  else if (name === 'productos') { buildChartProductosBar(); buildTablaProductos(); }
-  else if (name === 'diario')    { buildChartDiario('todos'); buildChartSemanal(); buildChartAcum(); }
-  else if (name === 'detalle')   { buildTablaDetalle('', ''); }
-  else if (name === 'kg')        { buildChartKGDiario('todos'); buildChartKGMes(); buildChartKGSemanal(); buildChartKGAcum(); }
-}
-
-function filtrarKGMes(mes, btn) {
-  document.querySelectorAll('#kgMonthFilterBtns .filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  buildChartKGDiario(mes);
-}
-
-function filtrarMes(mes, btn) {
-  document.querySelectorAll('#monthFilterBtns .filter-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  buildChartDiario(mes);
-}
-
-function filtrarTablaDetalle() {
-  const prod = document.getElementById('filtroProductoTabla').value;
-  const mes  = document.getElementById('filtroMesTabla').value;
-  buildTablaDetalle(prod, mes);
-}
-
-// ============================================================
-// INIT
-// ============================================================
-document.addEventListener('DOMContentLoaded', () => {
-  loadData();
-});
-</script>
-</body>
-</html>
+  if (mesFilter)  filtered = fil
