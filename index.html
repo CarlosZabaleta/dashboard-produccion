@@ -32,7 +32,7 @@
   }
 
   body {
-    background: linear-gradient(-45deg, #151c2e, #1e1650, #112840, #261040, #0d1f3c, #151c2e);
+    background: linear-gradient(-45deg, #060a14, #1a0d5c, #081e3c, #280a50, #052240, #060a14);
     background-size: 500% 500%;
     animation: gradientFlow 20s ease infinite;
     color: var(--text);
@@ -368,6 +368,31 @@
     .log-tab .log-charts-row { flex-direction:column; }
     .log-tab .log-chart.wide { flex:1; }
   }
+
+  /* ── SCRAP TAB ─────────────────────────────────────── */
+  .scrap-tab { padding-top:4px; }
+  .scrap-tab .scr-kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px; }
+  .scrap-tab .scr-kpi { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:16px 20px; }
+  .scrap-tab .scr-kpi-label { color:#8b949e; font-size:11px; text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px; }
+  .scrap-tab .scr-kpi-value { font-size:28px; font-weight:800; line-height:1; letter-spacing:-1px; }
+  .scrap-tab .scr-kpi-sub { color:#8b949e; font-size:12px; margin-top:5px; }
+  .scrap-tab .scr-section-title { font-size:11px; font-weight:700; color:#e6edf3; text-transform:uppercase; letter-spacing:.8px; border-left:3px solid #f85149; padding-left:10px; margin-bottom:14px; margin-top:20px; }
+  .scrap-tab .scr-section-title.papel { border-left-color:#d29922; }
+  .scrap-tab .scr-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
+  .scrap-tab .scr-chart { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:14px 16px; margin-bottom:14px; }
+  .scrap-tab .scr-chart h4 { font-size:11px; font-weight:600; color:#8b949e; text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; }
+  .scrap-tab .scr-filter-bar { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; align-items:center; }
+  .scrap-tab .scr-filter-label { color:#8b949e; font-size:12px; font-weight:600; margin-right:4px; }
+  .scrap-tab .scr-filter-btn { padding:5px 14px; border-radius:6px; border:1px solid #30363d; background:transparent; color:#8b949e; font-size:12px; cursor:pointer; transition:all .2s; font-family:inherit; }
+  .scrap-tab .scr-filter-btn.active,.scrap-tab .scr-filter-btn:hover { background:#2d1a1a; border-color:#f85149; color:#f85149; }
+  .scrap-tab .scr-table { width:100%; border-collapse:collapse; font-size:13px; }
+  .scrap-tab .scr-table th { padding:10px 14px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:#8b949e; border-bottom:1px solid #30363d; }
+  .scrap-tab .scr-table td { padding:9px 14px; border-bottom:1px solid #21262d; vertical-align:middle; }
+  .scrap-tab .scr-badge { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; }
+  .scrap-tab .scr-red  { background:#2d1a1a; color:#f85149; }
+  .scrap-tab .scr-amber{ background:#2d230a; color:#d29922; }
+  .scrap-tab .scr-blue { background:#0f1f33; color:#79c0ff; }
+  @media(max-width:700px){.scrap-tab .scr-kpi-row,.scrap-tab .scr-grid-2{grid-template-columns:1fr 1fr;}}
 </style>
 </head>
 <body>
@@ -398,6 +423,7 @@
   <button class="tab" onclick="switchTab('detalle')">🗂️ Detalle</button>
   <button class="tab" onclick="switchTab('kg')">⚖️ KG Producidos</button>
   <button class="tab" onclick="switchTab('logistica')">🚚 Logística</button>
+  <button class="tab" onclick="switchTab('scrap')">♻️ Scrap</button>
 </div>
 
 <div class="content">
@@ -764,6 +790,91 @@
   </div>
   </div>
 
+  <!-- TAB: SCRAP -->
+  <div id="tab-scrap" class="tab-panel scrap-tab">
+
+    <div class="scr-filter-bar">
+      <span class="scr-filter-label">Período:</span>
+      <button class="scr-filter-btn active" onclick="scrFiltrar('todos',this)">Todos</button>
+      <button class="scr-filter-btn" onclick="scrFiltrar('2026-04',this)">Abril 2026</button>
+      <button class="scr-filter-btn" onclick="scrFiltrar('2026-05',this)">Mayo 2026</button>
+      <button class="scr-filter-btn" onclick="scrFiltrar('2026-06',this)">Junio 2026</button>
+    </div>
+
+    <!-- KPIs -->
+    <div class="scr-kpi-row">
+      <div class="scr-kpi">
+        <div class="scr-kpi-label">Scrap Producto</div>
+        <div class="scr-kpi-value" id="scrKpiUnidades" style="color:#f85149">—</div>
+        <div class="scr-kpi-sub" id="scrKpiUnidadesSub">unidades totales</div>
+      </div>
+      <div class="scr-kpi">
+        <div class="scr-kpi-label">Tasa de Scrap</div>
+        <div class="scr-kpi-value" id="scrKpiTasa" style="color:#d29922">—</div>
+        <div class="scr-kpi-sub" id="scrKpiTasaSub">% vs producción total</div>
+      </div>
+      <div class="scr-kpi">
+        <div class="scr-kpi-label">Motivo Principal</div>
+        <div class="scr-kpi-value" id="scrKpiMotivo" style="color:#79c0ff;font-size:16px;line-height:1.3">—</div>
+        <div class="scr-kpi-sub" id="scrKpiMotivoPct">% del scrap total</div>
+      </div>
+      <div class="scr-kpi">
+        <div class="scr-kpi-label">Scrap Papel</div>
+        <div class="scr-kpi-value" id="scrKpiPapel" style="color:#3fb950">—</div>
+        <div class="scr-kpi-sub" id="scrKpiPapelSub">kg descartados</div>
+      </div>
+    </div>
+
+    <!-- Scrap Producto -->
+    <div class="scr-section-title">♻️ Scrap de Producto</div>
+    <div class="scr-grid-2">
+      <div class="scr-chart">
+        <h4>Scrap por Producto (unidades)</h4>
+        <div style="height:210px"><canvas id="scrCProd"></canvas></div>
+      </div>
+      <div class="scr-chart">
+        <h4>Distribución por Motivo</h4>
+        <div style="height:210px"><canvas id="scrCMotivo"></canvas></div>
+      </div>
+    </div>
+    <div class="scr-chart">
+      <h4>Evolución Diaria — Scrap de Producto (unidades)</h4>
+      <div style="height:175px"><canvas id="scrCDiario"></canvas></div>
+    </div>
+    <div class="scr-chart">
+      <h4>Últimos Registros — Scrap Producto</h4>
+      <div style="overflow-x:auto">
+        <table class="scr-table">
+          <thead><tr><th>Fecha</th><th>Producto</th><th>Motivo</th><th style="text-align:right">Cant.</th></tr></thead>
+          <tbody id="scrTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Scrap Papel -->
+    <div class="scr-section-title papel">📄 Scrap de Papel</div>
+    <div class="scr-grid-2">
+      <div class="scr-chart">
+        <h4>Evolución Diaria (kg)</h4>
+        <div style="height:210px"><canvas id="scrCPapelD"></canvas></div>
+      </div>
+      <div class="scr-chart">
+        <h4>Scrap por Turno &amp; Mes (kg)</h4>
+        <div style="height:210px"><canvas id="scrCPapelT"></canvas></div>
+      </div>
+    </div>
+    <div class="scr-chart">
+      <h4>Registros de Papel</h4>
+      <div style="overflow-x:auto">
+        <table class="scr-table">
+          <thead><tr><th>Fecha</th><th>Turno</th><th style="text-align:right">Kg Scrap</th></tr></thead>
+          <tbody id="scrPapelTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
 </div>
 
 <script>
@@ -771,7 +882,9 @@
 // CONFIGURATION
 // ============================================================
 const SHEET_URL    = 'https://docs.google.com/spreadsheets/d/1UnmceONjjrVrHcN6cUmaWie6m4e1swogyfuazpWk0-E/gviz/tq?tqx=out:csv&sheet=HISTORICO';
-const KG_SHEET_URL = 'https://docs.google.com/spreadsheets/d/1UnmceONjjrVrHcN6cUmaWie6m4e1swogyfuazpWk0-E/gviz/tq?tqx=out:csv&sheet=KG_DIARIOS';
+const KG_SHEET_URL   = 'https://docs.google.com/spreadsheets/d/1UnmceONjjrVrHcN6cUmaWie6m4e1swogyfuazpWk0-E/gviz/tq?tqx=out:csv&sheet=KG_DIARIOS';
+const SCRAP_URL      = 'https://docs.google.com/spreadsheets/d/1UnmceONjjrVrHcN6cUmaWie6m4e1swogyfuazpWk0-E/gviz/tq?tqx=out:csv&sheet=SCRAP';
+const SCRAP_PAPEL_URL = 'https://docs.google.com/spreadsheets/d/1UnmceONjjrVrHcN6cUmaWie6m4e1swogyfuazpWk0-E/gviz/tq?tqx=out:csv&sheet=SCRAP_PAPEL';
 
 // ============================================================
 // GLOBAL STATE (populated by loadData)
@@ -936,11 +1049,34 @@ async function loadData() {
   hideError();
 
   const ts = '&_=' + Date.now();
-  const [histRes, kgRes] = await Promise.allSettled([
+  const [histRes, kgRes, scrapRes, papelRes] = await Promise.allSettled([
     fetch(SHEET_URL + ts).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }),
-    fetch(KG_SHEET_URL + ts).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+    fetch(KG_SHEET_URL + ts).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }),
+    fetch(SCRAP_URL + ts).then(r => r.text()),
+    fetch(SCRAP_PAPEL_URL + ts).then(r => r.text())
   ]);
 
+  // --- SCRAP DATA (parse and store globally) ---
+  if (scrapRes.status === 'fulfilled') {
+    try {
+      const lines = scrapRes.value.replace(/\r/g,'').split('\n').filter(l=>l.trim()).slice(1);
+      window._SCRAP_ROWS = lines.map(l => {
+        const c = parseCSVLine(l);
+        if (c.length < 5) return null;
+        return { fecha: c[1].trim().split(' ')[0], producto: c[2].trim(), motivo: c[3].trim(), cantidad: parseInt(c[4])||0 };
+      }).filter(r=>r&&r.cantidad>0);
+    } catch(e) { window._SCRAP_ROWS = []; }
+  }
+  if (papelRes.status === 'fulfilled') {
+    try {
+      const lines = papelRes.value.replace(/\r/g,'').split('\n').filter(l=>l.trim()).slice(1);
+      window._PAPEL_ROWS = lines.map(l => {
+        const c = parseCSVLine(l);
+        if (c.length < 4) return null;
+        return { fecha: c[1].trim(), turno: c[2].trim(), kg: parseFloat((c[3]||'0').replace(',','.')) };
+      }).filter(r=>r&&r.kg>0);
+    } catch(e) { window._PAPEL_ROWS = []; }
+  }
   // --- HISTORICO ---
   if (histRes.status === 'fulfilled') {
     try {
@@ -1612,6 +1748,7 @@ function switchTab(name) {
   else if (name === 'detalle')   { buildTablaDetalle('', ''); }
   else if (name === 'kg')        { buildChartKGDiario('todos'); buildChartKGMes(); buildChartKGSemanal(); buildChartKGAcum(); }
   else if (name === 'logistica') { initLogistica(); }
+  else if (name === 'scrap')     { initScrap(); }
 }
 
 function filtrarKGMes(mes, btn) {
@@ -1635,10 +1772,6 @@ function filtrarTablaDetalle() {
 // ============================================================
 // INIT
 // ============================================================
-document.addEventListener('DOMContentLoaded', () => {
-  loadData();
-});
-
 // ============================================================
 // LOGÍSTICA — Canvas 2D charts (no external deps)
 // ============================================================
@@ -1683,9 +1816,280 @@ function logDrawGroupedBar(id,data){const c=logGetCtx(id);if(!c)return;const{ctx
 function logBuildTable(){document.getElementById('ltbRemitos').innerHTML=LOG_REMITOS.map(r=>'<tr><td style="color:#8b949e;font-size:12px;white-space:nowrap">'+r.f+'</td><td><strong>'+r.c+'</strong></td><td><span class="lttag">'+r.t+'</span></td><td>'+(r.n==='-'?'<span class="lbadge lb-gray">-</span>':'<span class="lbadge lb-blue">'+r.n+'</span>')+'</td><td>'+(r.o?'<span class="lbadge lb-orange">'+r.o+'</span>':'<span style="color:#8b949e;font-size:12px">-</span>')+'</td><td style="text-align:right;font-weight:700;color:#58a6ff">'+r.v.toLocaleString('es-AR')+'</td></tr>').join('');}
 function logUpdateKPIs(mes){const d=LOG_KPI_MES[mes]||LOG_KPI_MES.todos;document.getElementById('lkCajas').textContent=d.cajas.toLocaleString('es-AR');document.getElementById('lkRemitos').textContent=d.remitos;document.getElementById('lkClientes').textContent=d.clientes;document.getElementById('lkProm').textContent=d.prom.toLocaleString('es-AR');['lkCajasSub','lkRemitosSub','lkClientesSub','lkPromSub'].forEach(id=>document.getElementById(id).textContent=d.sub);}
 function logFiltrar(mes,btn){document.querySelectorAll('.log-filter-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');logUpdateKPIs(mes);const entries=Object.entries(LOG_ALL_DIAS).filter(([d])=>mes==='todos'||d.startsWith(mes));logDrawBarV('lcDiario',entries.map(([d])=>{const p=d.split('-');return p[2]*1+'/'+p[1]*1;}),entries.map(([,v])=>v));}
+
+// ============================================================
+// SCRAP — Canvas 2D charts
+// ============================================================
+const SCR_HIT = {}, SCR_REDRAW = {};
+
+function scrGetCtx(id) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return null;
+  const W = canvas.parentElement.clientWidth || 400;
+  const H = canvas.parentElement.clientHeight || 200;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d'); ctx.scale(dpr, dpr);
+  return { ctx, W, H };
+}
+function scrRRect(ctx, x, y, w, h, r) {
+  if (w <= 0 || h <= 0) return;
+  r = Math.min(r, w/2, h/2);
+  ctx.beginPath();
+  ctx.moveTo(x+r, y); ctx.lineTo(x+w-r, y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w, y+h); ctx.lineTo(x, y+h); ctx.lineTo(x, y+r);
+  ctx.arcTo(x,y,x+r,y,r); ctx.closePath();
+}
+function scrFmt(n) { return n >= 1000 ? (n/1000).toFixed(1).replace('.0','') + 'k' : String(n); }
+function scrFmtKg(n) { return n.toFixed(2) + ' kg'; }
+
+function scrBarH(id, items, colFn) {
+  const c = scrGetCtx(id); if (!c) return;
+  const { ctx, W, H } = c;
+  SCR_HIT[id] = [];
+  const COLS = ['#f85149','#d29922','#79c0ff','#3fb950','#bc8cff','#f778ba'];
+  const labW = Math.min(175, W * 0.4), valW = 52;
+  const pad = { t:8, r:valW+4, b:8, l:labW+6 };
+  const cw = W - pad.l - pad.r, ch = H - pad.t - pad.b;
+  const n = items.length, max = Math.max(...items.map(([,v])=>v)) * 1.1;
+  const step = ch / n, bh = step * 0.6;
+  items.forEach(([lbl, val], i) => {
+    const y = pad.t + i * step + (step - bh) / 2;
+    const bw = (val / max) * cw;
+    const col = typeof colFn === 'function' ? colFn(i) : COLS[i % COLS.length];
+    scrRRect(ctx, pad.l, y, bw, bh, 3);
+    ctx.fillStyle = col + '55'; ctx.fill();
+    ctx.strokeStyle = col; ctx.lineWidth = 1; ctx.stroke();
+    SCR_HIT[id].push({ x:pad.l, y, w:bw, h:bh, label:lbl, value:val });
+    ctx.fillStyle = '#e6edf3'; ctx.font = '11px Inter,sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+    ctx.fillText(lbl.length > 22 ? lbl.slice(0,21)+'…' : lbl, pad.l-6, y+bh/2);
+    ctx.fillStyle = '#8b949e'; ctx.font = '10px Inter,sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(val.toLocaleString('es-AR'), pad.l+bw+5, y+bh/2);
+  });
+  SCR_REDRAW[id] = () => scrBarH(id, items, colFn);
+}
+
+function scrDonut(id, items) {
+  const c = scrGetCtx(id); if (!c) return;
+  const { ctx, W, H } = c;
+  const total = items.reduce((s,[,v])=>s+v,0);
+  const cx = Math.min(W*.28, H*.48+4), cy = H/2;
+  const rOut = Math.min(cx-10, cy-10, 80), rIn = rOut * 0.52;
+  let ang = -Math.PI/2;
+  items.forEach(([,val,col]) => {
+    const sw = (val/total)*Math.PI*2;
+    ctx.beginPath(); ctx.arc(cx,cy,rOut,ang,ang+sw); ctx.arc(cx,cy,rIn,ang+sw,ang,true); ctx.closePath();
+    ctx.fillStyle = col; ctx.fill(); ctx.strokeStyle = '#161b22'; ctx.lineWidth = 2; ctx.stroke();
+    ang += sw;
+  });
+  // Center label
+  ctx.font = 'bold 14px Inter,sans-serif'; ctx.fillStyle = '#e6edf3'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(total.toLocaleString('es-AR'), cx, cy-6);
+  ctx.font = '10px Inter,sans-serif'; ctx.fillStyle = '#8b949e';
+  ctx.fillText('total', cx, cy+10);
+  // Legend
+  const lx = cx+rOut+16, ih = Math.min(26, (H-16)/items.length), ly0 = Math.max(8,(H-items.length*ih)/2);
+  items.forEach(([lbl,val,col],i) => {
+    const y = ly0 + i*ih;
+    ctx.fillStyle = col; ctx.fillRect(lx, y+4, 10, 10);
+    ctx.fillStyle = '#e6edf3'; ctx.font = '10px Inter,sans-serif'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+    ctx.fillText(lbl, lx+15, y+2);
+    const pct = Math.round(val/total*100);
+    ctx.fillStyle = '#8b949e'; ctx.font = '9px Inter,sans-serif';
+    ctx.fillText(pct + '%  ·  ' + val.toLocaleString('es-AR'), lx+15, y+14);
+  });
+}
+
+function scrLine(id, labels, values, col) {
+  const c = scrGetCtx(id); if (!c) return;
+  const { ctx, W, H } = c;
+  SCR_HIT[id] = [];
+  col = col || '#f85149';
+  const pad = { t:16, r:16, b:36, l:46 };
+  const cw = W-pad.l-pad.r, ch = H-pad.t-pad.b;
+  const mn = Math.min(...values)*0.85, mx = Math.max(...values)*1.12, rng = mx-mn;
+  const n = labels.length;
+  const px = i => pad.l + (i/(n-1))*cw;
+  const py = v => pad.t + ch*(1-(v-mn)/rng);
+  // Grid
+  [0,.25,.5,.75,1].forEach(f => {
+    const y = pad.t + ch*(1-f);
+    ctx.strokeStyle = '#21262d'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+cw,y); ctx.stroke();
+    if (f > 0) {
+      ctx.fillStyle = '#8b949e'; ctx.font = '9px Inter,sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText(scrFmt(Math.round(mn+rng*f)), pad.l-5, y);
+    }
+  });
+  // Area fill
+  ctx.beginPath(); ctx.moveTo(px(0), pad.t+ch);
+  labels.forEach((_,i) => ctx.lineTo(px(i), py(values[i])));
+  ctx.lineTo(px(n-1), pad.t+ch); ctx.closePath();
+  ctx.fillStyle = col + '22'; ctx.fill();
+  // Line
+  ctx.beginPath(); ctx.moveTo(px(0), py(values[0]));
+  for (let i = 1; i < n; i++) {
+    const cp = (px(i-1)+px(i))/2;
+    ctx.bezierCurveTo(cp, py(values[i-1]), cp, py(values[i]), px(i), py(values[i]));
+  }
+  ctx.strokeStyle = col; ctx.lineWidth = 2; ctx.stroke();
+  // Dots
+  const skip = n > 20 ? 3 : n > 12 ? 2 : 1;
+  labels.forEach((lbl, i) => {
+    const x = px(i), y = py(values[i]);
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2);
+    ctx.fillStyle = col; ctx.fill(); ctx.strokeStyle = '#161b22'; ctx.lineWidth = 2; ctx.stroke();
+    SCR_HIT[id].push({ x:x-5, y:y-5, w:10, h:10, label:lbl, value:values[i] });
+    if (i % skip === 0) {
+      ctx.fillStyle = '#8b949e'; ctx.font = '9px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillText(lbl, x, pad.t+ch+8);
+    }
+  });
+  SCR_REDRAW[id] = () => scrLine(id, labels, values, col);
+}
+
+function scrBarV(id, labels, values, col) {
+  const c = scrGetCtx(id); if (!c) return;
+  const { ctx, W, H } = c;
+  SCR_HIT[id] = [];
+  col = col || '#d29922';
+  const pad = { t:16, r:12, b:38, l:46 };
+  const cw = W-pad.l-pad.r, ch = H-pad.t-pad.b;
+  const max = Math.max(...values)*1.12, n = labels.length;
+  [0,.25,.5,.75,1].forEach(f => {
+    const y = pad.t+ch*(1-f);
+    ctx.strokeStyle = '#21262d'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+cw,y); ctx.stroke();
+    if (f > 0) {
+      ctx.fillStyle = '#8b949e'; ctx.font = '9px Inter,sans-serif'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText(scrFmt(Math.round(max*f)), pad.l-5, y);
+    }
+  });
+  const step = cw/n, bw = step*.62;
+  const COLS = ['#f85149','#d29922','#79c0ff','#3fb950','#bc8cff','#f778ba'];
+  labels.forEach((lbl, i) => {
+    const x = pad.l+i*step+(step-bw)/2, bh = (values[i]/max)*ch, y = pad.t+ch-bh;
+    const c2 = typeof col === 'string' ? col : COLS[i%COLS.length];
+    scrRRect(ctx, x, y, bw, bh, 3);
+    ctx.fillStyle = c2+'33'; ctx.fill(); ctx.strokeStyle = c2; ctx.lineWidth=1; ctx.stroke();
+    SCR_HIT[id].push({ x, y, w:bw, h:bh, label:lbl, value:values[i] });
+    ctx.fillStyle = '#8b949e'; ctx.font = '9px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    ctx.fillText(lbl, x+bw/2, pad.t+ch+6);
+  });
+  SCR_REDRAW[id] = () => scrBarV(id, labels, values, col);
+}
+
+function scrParseFecha(s) {
+  // dd/mm/yyyy → Date
+  const p = s.split('/');
+  return new Date(parseInt(p[2]),parseInt(p[1])-1,parseInt(p[0]));
+}
+function scrMesKey(s) {
+  const p = s.split('/'); return p[2]+'-'+p[1]; // yyyy-mm
+}
+
+function scrFiltrar(mes, btn) {
+  document.querySelectorAll('.scr-filter-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const rows = (window._SCRAP_ROWS || []).filter(r => mes==='todos' || scrMesKey(r.fecha)===mes);
+  const prows= (window._PAPEL_ROWS || []).filter(r => mes==='todos' || scrMesKey(r.fecha)===mes);
+  scrRenderAll(rows, prows, mes);
+}
+
+function scrRenderAll(rows, prows, mes) {
+  if (!rows) return;
+  const totalProd = (window._STATE && window._STATE.totalCajas) ? window._STATE.totalCajas : 40680;
+
+  // KPIs
+  const totalUnid = rows.reduce((s,r)=>s+r.cantidad,0);
+  const totalKg   = prows.reduce((s,r)=>s+r.kg,0);
+  const tasa      = totalProd > 0 ? (totalUnid/totalProd*100).toFixed(1) : '—';
+
+  document.getElementById('scrKpiUnidades').textContent = totalUnid.toLocaleString('es-AR');
+  document.getElementById('scrKpiTasa').textContent     = tasa + '%';
+  document.getElementById('scrKpiPapel').textContent    = totalKg.toFixed(2) + ' kg';
+
+  const byMotivo = {};
+  rows.forEach(r => { byMotivo[r.motivo]=(byMotivo[r.motivo]||0)+r.cantidad; });
+  const motivos = Object.entries(byMotivo).sort((a,b)=>b[1]-a[1]);
+  if (motivos.length) {
+    const top = motivos[0];
+    document.getElementById('scrKpiMotivo').textContent   = top[0];
+    document.getElementById('scrKpiMotivoPct').textContent= Math.round(top[1]/totalUnid*100)+'% del total';
+  }
+
+  // Bar H por producto
+  const byProd = {};
+  rows.forEach(r => { byProd[r.producto]=(byProd[r.producto]||0)+r.cantidad; });
+  const prodItems = Object.entries(byProd).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  scrBarH('scrCProd', prodItems);
+
+  // Donut motivo
+  const MCOLS = ['#f85149','#d29922','#79c0ff','#3fb950','#bc8cff'];
+  const motivoItems = motivos.map(([k,v],i) => [k,v,MCOLS[i%MCOLS.length]]);
+  scrDonut('scrCMotivo', motivoItems.length ? motivoItems : [['Sin datos',1,'#30363d']]);
+
+  // Line diaria producto
+  const byDate = {};
+  rows.forEach(r => { byDate[r.fecha]=(byDate[r.fecha]||0)+r.cantidad; });
+  const sortedD = Object.entries(byDate).sort((a,b)=>scrParseFecha(a[0])-scrParseFecha(b[0]));
+  if (sortedD.length) {
+    const lls = sortedD.map(([d])=>{ const p=d.split('/'); return p[0]+'/'+p[1]; });
+    const vvs = sortedD.map(([,v])=>v);
+    scrLine('scrCDiario', lls, vvs, '#f85149');
+  }
+
+  // Table scrap producto (últimos 15)
+  const recent = [...rows].sort((a,b)=>scrParseFecha(b.fecha)-scrParseFecha(a.fecha)).slice(0,15);
+  const MBADGE = {'PARA MOLER':'scr-red','BARRIDO':'scr-amber','MASA CRUDA':'scr-blue'};
+  document.getElementById('scrTbody').innerHTML = recent.map(r =>
+    `<tr><td style="color:#8b949e;font-size:12px;white-space:nowrap">${r.fecha}</td>
+     <td><strong style="font-size:12px">${r.producto}</strong></td>
+     <td><span class="scr-badge ${MBADGE[r.motivo]||'scr-blue'}">${r.motivo}</span></td>
+     <td style="text-align:right;font-weight:700;color:#f85149">${r.cantidad.toLocaleString('es-AR')}</td></tr>`
+  ).join('');
+
+  // Line diaria papel
+  if (prows.length) {
+    const byPD = {};
+    prows.forEach(r => { byPD[r.fecha]=(byPD[r.fecha]||0)+r.kg; });
+    const sortedP = Object.entries(byPD).sort((a,b)=>new Date(a[0].split('/').reverse().join('-'))-new Date(b[0].split('/').reverse().join('-')));
+    const pLbls = sortedP.map(([d])=>{ const p=d.split('/'); return p[0]+'/'+p[1]; });
+    const pVals = sortedP.map(([,v])=>Math.round(v*100)/100);
+    scrLine('scrCPapelD', pLbls, pVals, '#d29922');
+  }
+
+  // Bar turno papel
+  const byTurno = {};
+  prows.forEach(r => { byTurno[r.turno]=(byTurno[r.turno]||0)+r.kg; });
+  const turnoItems = Object.entries(byTurno).sort((a,b)=>b[1]-a[1]);
+  if (turnoItems.length) {
+    scrBarV('scrCPapelT', turnoItems.map(([k])=>k), turnoItems.map(([,v])=>Math.round(v*100)/100), null);
+  }
+
+  // Table papel (últimos 12)
+  const recentP = [...prows].sort((a,b)=>new Date(b.fecha.split('/').reverse().join('-'))-new Date(a.fecha.split('/').reverse().join('-'))).slice(0,12);
+  document.getElementById('scrPapelTbody').innerHTML = recentP.map(r =>
+    `<tr><td style="color:#8b949e;font-size:12px">${r.fecha}</td>
+     <td><span class="scr-badge ${r.turno==='MAÑANA'?'scr-blue':'scr-amber'}">${r.turno}</span></td>
+     <td style="text-align:right;font-weight:700;color:#d29922">${r.kg.toFixed(2)} kg</td></tr>`
+  ).join('');
+}
+
+function initScrap() {
+  const rows  = window._SCRAP_ROWS || [];
+  const prows = window._PAPEL_ROWS || [];
+  scrRenderAll(rows, prows, 'todos');
+}
+
 function initLogistica(){logUpdateKPIs('todos');const ae=Object.entries(LOG_ALL_DIAS);logDrawBarV('lcDiario',ae.map(([d])=>{const p=d.split('-');return p[2]*1+'/'+p[1]*1;}),ae.map(([,v])=>v));logDrawDonut('lcProductos',LOG_PRODUCTOS);logDrawBarH('lcClientes',[...LOG_CLIENTES].sort((a,b)=>b[1]-a[1]));logDrawPie('lcTransporte',LOG_TRANSPORTES);logDrawHeatmap('lcHeatmap');logDrawGroupedBar('lcClientesMes',LOG_CLIENTES_MES);logBuildTable();}
-window.addEventListener('resize',()=>{const active=document.querySelector('.tab-panel.active');if(active&&active.id==='tab-logistica'){initLogistica();}});
-loadData();
+window.addEventListener('resize',()=>{
+  const active=document.querySelector('.tab-panel.active');
+  if(active&&active.id==='tab-logistica'){initLogistica();}
+  if(active&&active.id==='tab-scrap'){initScrap();}
+});
+document.addEventListener('DOMContentLoaded', () => { loadData(); });
 </script>
 </body>
 </html>
