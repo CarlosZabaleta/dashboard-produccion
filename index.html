@@ -2379,10 +2379,13 @@ function bpRenderAll(archRows, ingRows, mes) {
   setKpi('bpScrap',     scrapTotal.toFixed(2) + ' kg');
   setKpi('bpPct',       pctScrap.toFixed(1) + '%');
 
+  // ── Draw charts after layout is ready ──────────────────────
+  requestAnimationFrame(() => {
+
   // ── Donut: consumo vs scrap ──────────────────────────────────
   scrDonut('bpCDonut', [
-    { label:'Consumo (receta)', value: Math.max(consumoTeorico,0), color:'#1a7fd4' },
-    { label:'Scrap papel',      value: Math.max(scrapTotal,0),     color:'#f85149' },
+    ['Consumo (receta)', Math.max(consumoTeorico,0), '#1a7fd4'],
+    ['Scrap papel',      Math.max(scrapTotal,0),     '#f85149'],
   ]);
 
   // ── Grouped bar by month ─────────────────────────────────────
@@ -2426,6 +2429,8 @@ function bpRenderAll(archRows, ingRows, mes) {
     dayKeys.map(d => +(byDay[d]?.consumo || 0).toFixed(3)),
     dayKeys.map(d => byDay[d]?.scrap || 0)
   );
+
+  }); // end requestAnimationFrame
 
   // ── Table by product ─────────────────────────────────────────
   // Accumulate cajas per product (unique)
