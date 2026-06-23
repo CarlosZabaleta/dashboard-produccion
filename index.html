@@ -32,9 +32,9 @@
   }
 
   body {
-    background: linear-gradient(-45deg, #060a14, #1a0d5c, #081e3c, #280a50, #052240, #060a14);
+    background: linear-gradient(-45deg, #03060f, #1a2fa8, #04091e, #5b1a9e, #051535, #0e2d7a, #03060f);
     background-size: 500% 500%;
-    animation: gradientFlow 20s ease infinite;
+    animation: gradientFlow 12s ease infinite;
     color: var(--text);
     font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
     min-height: 100vh;
@@ -378,6 +378,7 @@
   .scrap-tab .scr-kpi-sub { color:#8b949e; font-size:12px; margin-top:5px; }
   .scrap-tab .scr-section-title { font-size:11px; font-weight:700; color:#e6edf3; text-transform:uppercase; letter-spacing:.8px; border-left:3px solid #f85149; padding-left:10px; margin-bottom:14px; margin-top:20px; }
   .scrap-tab .scr-section-title.papel { border-left-color:#d29922; }
+  .scrap-tab .scr-section-title.balance { border-left-color:#3fb950; }
   .scrap-tab .scr-grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; }
   .scrap-tab .scr-chart { background:#161b22; border:1px solid #30363d; border-radius:10px; padding:14px 16px; margin-bottom:14px; }
   .scrap-tab .scr-chart h4 { font-size:11px; font-weight:600; color:#8b949e; text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; }
@@ -806,7 +807,7 @@
       <div class="scr-kpi">
         <div class="scr-kpi-label">Scrap Producto</div>
         <div class="scr-kpi-value" id="scrKpiUnidades" style="color:#f85149">—</div>
-        <div class="scr-kpi-sub" id="scrKpiUnidadesSub">unidades totales</div>
+        <div class="scr-kpi-sub" id="scrKpiUnidadesSub">kg scrapeados</div>
       </div>
       <div class="scr-kpi">
         <div class="scr-kpi-label">Tasa de Scrap</div>
@@ -826,10 +827,11 @@
     </div>
 
     <!-- Scrap Producto -->
+    <div class="scr-sector" id="scrSectorProducto">
     <div class="scr-section-title">♻️ Scrap de Producto</div>
     <div class="scr-grid-2">
       <div class="scr-chart">
-        <h4>Scrap por Producto (unidades)</h4>
+        <h4>Scrap por Producto (kg)</h4>
         <div style="height:210px"><canvas id="scrCProd"></canvas></div>
       </div>
       <div class="scr-chart">
@@ -838,20 +840,23 @@
       </div>
     </div>
     <div class="scr-chart">
-      <h4>Evolución Diaria — Scrap de Producto (unidades)</h4>
+      <h4>Evolución Diaria — Scrap de Producto (kg)</h4>
       <div style="height:175px"><canvas id="scrCDiario"></canvas></div>
     </div>
     <div class="scr-chart">
       <h4>Últimos Registros — Scrap Producto</h4>
       <div style="overflow-x:auto">
         <table class="scr-table">
-          <thead><tr><th>Fecha</th><th>Producto</th><th>Motivo</th><th style="text-align:right">Cant.</th></tr></thead>
+          <thead><tr><th>Fecha</th><th>Producto</th><th>Motivo</th><th style="text-align:right">Kg</th></tr></thead>
           <tbody id="scrTbody"></tbody>
         </table>
       </div>
     </div>
 
     <!-- Scrap Papel -->
+    </div><!-- /scrSectorProducto -->
+    <div class="scr-sector-divider"></div>
+    <div class="scr-sector" id="scrSectorPapel">
     <div class="scr-section-title papel">📄 Scrap de Papel</div>
     <div class="scr-grid-2">
       <div class="scr-chart">
@@ -873,6 +878,73 @@
       </div>
     </div>
 
+  </div><!-- /scrSectorPapel -->
+    <div class="scr-sector-divider"></div>
+    <div class="scr-sector" id="scrSectorBalance">
+      <div class="scr-section-title balance">⚖️ Balance de Papel (BOPP)</div>
+
+      <!-- KPIs -->
+      <div class="scr-kpi-row" style="grid-template-columns:repeat(4,1fr)">
+        <div class="scr-kpi">
+          <div class="scr-kpi-label">BOPP Ingresado</div>
+          <div class="scr-kpi-value" id="bpIngresado" style="color:#3fb950;font-size:1.35rem">—</div>
+          <div class="scr-kpi-sub">kg recibidos</div>
+        </div>
+        <div class="scr-kpi">
+          <div class="scr-kpi-label">Consumo por Receta</div>
+          <div class="scr-kpi-value" id="bpConsumo" style="color:#79c0ff;font-size:1.35rem">—</div>
+          <div class="scr-kpi-sub">kg según fórmula</div>
+        </div>
+        <div class="scr-kpi">
+          <div class="scr-kpi-label">Scrap de Papel</div>
+          <div class="scr-kpi-value" id="bpScrap" style="color:#f85149;font-size:1.35rem">—</div>
+          <div class="scr-kpi-sub">kg desperdiciados</div>
+        </div>
+        <div class="scr-kpi">
+          <div class="scr-kpi-label">% Scrap / Uso Total</div>
+          <div class="scr-kpi-value" id="bpPct" style="color:#d29922;font-size:1.35rem">—</div>
+          <div class="scr-kpi-sub">tasa de desperdicio</div>
+        </div>
+      </div>
+
+      <!-- Charts row 1 -->
+      <div class="scr-grid-2">
+        <div class="scr-chart">
+          <h4>Distribución del Papel Utilizado</h4>
+          <div style="height:230px"><canvas id="bpCDonut"></canvas></div>
+        </div>
+        <div class="scr-chart">
+          <h4>Consumo vs Scrap por Mes (kg)</h4>
+          <div style="height:230px"><canvas id="bpCMes"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Daily dual-line -->
+      <div class="scr-chart">
+        <h4>Evolución Diaria — Consumo BOPP (receta) vs Scrap de Papel</h4>
+        <div style="height:190px"><canvas id="bpCDiario"></canvas></div>
+      </div>
+
+      <!-- Table by product -->
+      <div class="scr-chart">
+        <h4>Balance por Producto</h4>
+        <div style="overflow-x:auto">
+          <table class="scr-table">
+            <thead><tr>
+              <th>Producto</th>
+              <th style="text-align:right">Cajas</th>
+              <th style="text-align:right">BOPP/caja</th>
+              <th style="text-align:right">Consumo teórico</th>
+              <th style="text-align:right">Scrap papel</th>
+              <th style="text-align:right">% Scrap</th>
+            </tr></thead>
+            <tbody id="bpTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /scrSectorBalance -->
+
   </div>
 
 </div>
@@ -885,6 +957,8 @@ const SHEET_URL    = 'https://docs.google.com/spreadsheets/d/1UnmceONjjrVrHcN6cU
 const KG_SHEET_URL   = 'https://docs.google.com/spreadsheets/d/1UnmceONjjrVrHcN6cUmaWie6m4e1swogyfuazpWk0-E/gviz/tq?tqx=out:csv&sheet=KG_DIARIOS';
 const SCRAP_URL      = 'https://docs.google.com/spreadsheets/d/1UnmceONjjrVrHcN6cUmaWie6m4e1swogyfuazpWk0-E/gviz/tq?tqx=out:csv&sheet=SCRAP';
 const SCRAP_PAPEL_URL = 'https://docs.google.com/spreadsheets/d/1UnmceONjjrVrHcN6cUmaWie6m4e1swogyfuazpWk0-E/gviz/tq?tqx=out:csv&sheet=SCRAP_PAPEL';
+const ARCHIVO_URL      = 'https://docs.google.com/spreadsheets/d/1Qu5-lvTKjgIeSKCt8pqYYiYF9Qd5WfMDlpeeGkgdFnM/gviz/tq?tqx=out:csv&sheet=ARCHIVO';
+const INGRESOS_URL     = 'https://docs.google.com/spreadsheets/d/1Qu5-lvTKjgIeSKCt8pqYYiYF9Qd5WfMDlpeeGkgdFnM/gviz/tq?tqx=out:csv&sheet=INGRESOS_INSUMOS';
 
 // ============================================================
 // GLOBAL STATE (populated by loadData)
@@ -1049,11 +1123,13 @@ async function loadData() {
   hideError();
 
   const ts = '&_=' + Date.now();
-  const [histRes, kgRes, scrapRes, papelRes] = await Promise.allSettled([
+  const [histRes, kgRes, scrapRes, papelRes, archivoRes, ingresosRes] = await Promise.allSettled([
     fetch(SHEET_URL + ts).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }),
     fetch(KG_SHEET_URL + ts).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }),
     fetch(SCRAP_URL + ts).then(r => r.text()),
-    fetch(SCRAP_PAPEL_URL + ts).then(r => r.text())
+    fetch(SCRAP_PAPEL_URL + ts).then(r => r.text()),
+    fetch(ARCHIVO_URL + ts).then(r => r.text()).catch(()=>null),
+    fetch(INGRESOS_URL + ts).then(r => r.text()).catch(()=>null)
   ]);
 
   // --- SCRAP DATA (parse and store globally) ---
@@ -1076,6 +1152,45 @@ async function loadData() {
         return { fecha: c[1].trim(), turno: c[2].trim(), kg: parseFloat((c[3]||'0').replace(',','.')) };
       }).filter(r=>r&&r.kg>0);
     } catch(e) { window._PAPEL_ROWS = []; }
+  }
+  // --- ARCHIVO (APP-ARCHIVO GENERAL) ---
+  window._ARCHIVO_ROWS = [];
+  if (archivoRes && archivoRes.status === 'fulfilled' && archivoRes.value) {
+    try {
+      const lines = archivoRes.value.replace(/\r/g,'').split('\n').filter(l=>l.trim()).slice(1);
+      const BOPP_IDS = new Set(['INS004','INS005','INS006','INS007','INS008','INS009','INS010','INS020']);
+      window._ARCHIVO_ROWS = lines.map(l => {
+        const c = parseCSVLine(l);
+        if (c.length < 6) return null;
+        const fecha = (c[0]||'').trim();
+        if (!fecha || fecha.startsWith('30/12') || fecha.includes('echa')) return null;
+        const producto = (c[1]||'').trim().toUpperCase();
+        if (!producto) return null;
+        const cajas = parseFloat((c[2]||'0').replace(',','.')) || 0;
+        const scrapPapel = parseFloat((c[5]||'0').replace(',','.')) || 0;
+        const rendStr = (c[7]||'0').replace('%','').replace(',','.');
+        const rendimiento = parseFloat(rendStr) || 0;
+        return { fecha, producto, cajas, scrapPapel, rendimiento };
+      }).filter(r => r && r.cajas > 0);
+    } catch(e) { console.warn('ARCHIVO parse fail:', e); }
+  }
+  // --- INGRESOS_INSUMOS (BOPP paper only) ---
+  window._INGRESOS_ROWS = [];
+  if (ingresosRes && ingresosRes.status === 'fulfilled' && ingresosRes.value) {
+    try {
+      const lines = ingresosRes.value.replace(/\r/g,'').split('\n').filter(l=>l.trim()).slice(1);
+      const BOPP_IDS = ['INS004','INS005','INS006','INS007','INS008','INS009','INS010','INS020'];
+      window._INGRESOS_ROWS = lines.map(l => {
+        const c = parseCSVLine(l);
+        if (c.length < 4) return null;
+        const fechaRaw = (c[1]||'').trim().split(' ')[0]; // "6/05/2026 10:20:12" → "6/05/2026"
+        const insumoId = (c[2]||'').trim();
+        if (!BOPP_IDS.includes(insumoId)) return null;
+        const cantidad = parseFloat((c[3]||'0').replace(',','.')) || 0;
+        if (!fechaRaw || cantidad <= 0) return null;
+        return { fecha: fechaRaw, insumoId, cantidad };
+      }).filter(Boolean);
+    } catch(e) { console.warn('INGRESOS parse fail:', e); }
   }
   // --- HISTORICO ---
   if (histRes.status === 'fulfilled') {
@@ -1995,18 +2110,19 @@ function scrFiltrar(mes, btn) {
   const rows = (window._SCRAP_ROWS || []).filter(r => mes==='todos' || scrMesKey(r.fecha)===mes);
   const prows= (window._PAPEL_ROWS || []).filter(r => mes==='todos' || scrMesKey(r.fecha)===mes);
   scrRenderAll(rows, prows, mes);
+  bpRenderAll(window._ARCHIVO_ROWS, window._INGRESOS_ROWS, mes);
 }
 
 function scrRenderAll(rows, prows, mes) {
   if (!rows) return;
-  const totalProd = (window._STATE && window._STATE.totalCajas) ? window._STATE.totalCajas : 40680;
+  const totalProd = (typeof KG_TOTAL !== "undefined" && KG_TOTAL > 0) ? KG_TOTAL : 0;
 
   // KPIs
-  const totalUnid = rows.reduce((s,r)=>s+r.cantidad,0);
+  const totalKgProd = rows.reduce((s,r)=>s+r.cantidad,0);
   const totalKg   = prows.reduce((s,r)=>s+r.kg,0);
-  const tasa      = totalProd > 0 ? (totalUnid/totalProd*100).toFixed(1) : '—';
+  const tasa      = totalProd > 0 ? (totalKgProd/totalProd*100).toFixed(1) : '—';
 
-  document.getElementById('scrKpiUnidades').textContent = totalUnid.toLocaleString('es-AR');
+  document.getElementById('scrKpiUnidades').textContent = totalKgProd.toLocaleString('es-AR') + ' kg';
   document.getElementById('scrKpiTasa').textContent     = tasa + '%';
   document.getElementById('scrKpiPapel').textContent    = totalKg.toFixed(2) + ' kg';
 
@@ -2016,7 +2132,7 @@ function scrRenderAll(rows, prows, mes) {
   if (motivos.length) {
     const top = motivos[0];
     document.getElementById('scrKpiMotivo').textContent   = top[0];
-    document.getElementById('scrKpiMotivoPct').textContent= Math.round(top[1]/totalUnid*100)+'% del total';
+    document.getElementById('scrKpiMotivoPct').textContent= Math.round(top[1]/totalKgProd*100)+'% del total';
   }
 
   // Bar H por producto
@@ -2077,10 +2193,293 @@ function scrRenderAll(rows, prows, mes) {
   ).join('');
 }
 
+
+// ============================================================
+// BALANCE DE PAPEL (BOPP) – bpRenderAll + helpers
+// ============================================================
+
+// BOPP kg per caja by product (from RECETAS sheet)
+function bpGetBoppKg(producto) {
+  const p = producto.toUpperCase();
+  if (p.includes('TOSTADITA') && p.includes('CLASICA'))  return 0.096;
+  if (p.includes('TOSTADITA') && p.includes('SIN SAL')) return 0.096;
+  if (p.includes('TOSTADITA'))                          return 0.096;
+  if (p.includes('REBOZADOR'))                          return 0.056;
+  if (p.includes('2 HERMANOS') || p.includes('2H'))     return 0.072;
+  if (p.includes('DULCE'))                              return 0.048;
+  if (p.includes('SIN SAL'))                            return 0.048;
+  if (p.includes('CLASICA') || p.includes('TOSTADA'))   return 0.048;
+  return 0;
+}
+
+// Dual-line chart: consumo (blue) vs scrap (amber/red)
+function bpLineDual(id, labels, vals1, vals2) {
+  const c = scrGetCtx(id); if (!c) return;
+  const { ctx, W, H } = c;
+  const pad = {t:24, r:16, b:32, l:50};
+  const cW = W - pad.l - pad.r, cH = H - pad.t - pad.b;
+  ctx.clearRect(0,0,W,H);
+  if (!labels.length) return;
+  const max = Math.max(...vals1, ...vals2, 0.1) * 1.12;
+  const sc  = v  => pad.t + cH * (1 - v/max);
+  const xsc = i  => pad.l + (labels.length < 2 ? cW/2 : (i/(labels.length-1)) * cW);
+
+  // Grid
+  [0,0.25,0.5,0.75,1].forEach(f => {
+    const y = pad.t + cH*(1-f);
+    ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+cW,y); ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.38)'; ctx.font='10px Inter,sans-serif'; ctx.textAlign='right';
+    ctx.fillText((max*f).toFixed(1), pad.l-4, y+3.5);
+  });
+
+  // Draw filled area + line for each series
+  const drawSeries = (vals, color, alpha) => {
+    if (vals.length < 2) return;
+    ctx.save();
+    // Area
+    ctx.beginPath();
+    ctx.moveTo(xsc(0), pad.t + cH);
+    vals.forEach((v,i) => ctx.lineTo(xsc(i), sc(v)));
+    ctx.lineTo(xsc(vals.length-1), pad.t+cH);
+    ctx.closePath();
+    ctx.fillStyle = color.replace('rgb(','rgba(').replace(')',`,${alpha})`);
+    ctx.fill();
+    // Line
+    ctx.beginPath();
+    vals.forEach((v,i) => i===0 ? ctx.moveTo(xsc(i),sc(v)) : ctx.lineTo(xsc(i),sc(v)));
+    ctx.strokeStyle = color; ctx.lineWidth = 2.2; ctx.lineJoin='round'; ctx.stroke();
+    // Dots (sparse)
+    const step = Math.max(1, Math.floor(vals.length/15));
+    vals.forEach((v,i) => {
+      if (i%step===0 || i===vals.length-1) {
+        ctx.beginPath(); ctx.arc(xsc(i),sc(v),3.5,0,Math.PI*2);
+        ctx.fillStyle=color; ctx.fill();
+        ctx.strokeStyle='#0d1117'; ctx.lineWidth=1.5; ctx.stroke();
+      }
+    });
+    ctx.restore();
+  };
+
+  drawSeries(vals1, 'rgb(26,127,212)', 0.12);
+  drawSeries(vals2, 'rgb(248,81,73)',  0.14);
+
+  // X labels (sparse)
+  ctx.fillStyle='rgba(255,255,255,0.42)'; ctx.font='9px Inter,sans-serif'; ctx.textAlign='center';
+  const step2 = Math.max(1, Math.floor(labels.length/10));
+  labels.forEach((l,i) => {
+    if (i%step2===0 || i===labels.length-1) {
+      const parts = l.split('/');
+      const lbl = parts.length>=2 ? parts[0]+'/'+parts[1] : l;
+      ctx.fillText(lbl, xsc(i), H-5);
+    }
+  });
+
+  // Legend
+  [['Consumo receta (BOPP)','rgb(26,127,212)'],['Scrap papel','rgb(248,81,73)']].forEach(([lbl,col],i) => {
+    const lx = pad.l + 10 + i*155;
+    ctx.beginPath(); ctx.moveTo(lx,14); ctx.lineTo(lx+22,14);
+    ctx.strokeStyle=col; ctx.lineWidth=2.2; ctx.stroke();
+    ctx.beginPath(); ctx.arc(lx+11,14,3.5,0,Math.PI*2); ctx.fillStyle=col; ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.7)'; ctx.font='10px Inter,sans-serif'; ctx.textAlign='left';
+    ctx.fillText(lbl, lx+27, 17.5);
+  });
+}
+
+// Grouped vertical bar chart (2 series)
+function bpBarGrouped(id, labels, series) {
+  const c = scrGetCtx(id); if (!c) return;
+  const { ctx, W, H } = c;
+  const pad = {t:24, r:16, b:44, l:52};
+  const cW = W - pad.l - pad.r, cH = H - pad.t - pad.b;
+  ctx.clearRect(0,0,W,H);
+  if (!labels.length) return;
+  const maxVal = Math.max(...series.flatMap(s=>s.values), 0.1) * 1.12;
+  const nG = labels.length, nS = series.length;
+  const groupW = cW / nG;
+  const gap = 3;
+  const barW = (groupW * 0.72) / nS;
+
+  // Grid
+  [0,0.25,0.5,0.75,1].forEach(f => {
+    const y = pad.t + cH*(1-f);
+    ctx.strokeStyle='rgba(255,255,255,0.07)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(pad.l,y); ctx.lineTo(pad.l+cW,y); ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.38)'; ctx.font='10px Inter,sans-serif'; ctx.textAlign='right';
+    ctx.fillText((maxVal*f).toFixed(1), pad.l-4, y+3.5);
+  });
+
+  // Bars
+  labels.forEach((label, gi) => {
+    const gCenter = pad.l + (gi + 0.5) * groupW;
+    const totalBarsW = nS * barW + (nS-1) * gap;
+    series.forEach((s, si) => {
+      const bx = gCenter - totalBarsW/2 + si*(barW+gap);
+      const bh = cH * (s.values[gi] / maxVal);
+      const by = pad.t + cH - bh;
+      const grad = ctx.createLinearGradient(0, by, 0, by + bh);
+      grad.addColorStop(0, s.color);
+      grad.addColorStop(1, s.color.replace('rgb(','rgba(').replace(')',',0.35)'));
+      scrRRect(ctx, bx, by, barW, bh, 4);
+      ctx.fillStyle = grad; ctx.fill();
+      // Value label on top if bar is tall enough
+      if (bh > 16) {
+        ctx.fillStyle='rgba(255,255,255,0.85)'; ctx.font='bold 9px Inter,sans-serif'; ctx.textAlign='center';
+        ctx.fillText(s.values[gi].toFixed(1), bx + barW/2, by + 10);
+      }
+    });
+    // X label
+    ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.font='11px Inter,sans-serif'; ctx.textAlign='center';
+    ctx.fillText(label, gCenter, H-8);
+  });
+
+  // Legend
+  series.forEach((s, i) => {
+    const lx = pad.l + 10 + i*160;
+    ctx.fillStyle = s.color;
+    scrRRect(ctx, lx, 8, 14, 11, 3); ctx.fill();
+    ctx.fillStyle='rgba(255,255,255,0.72)'; ctx.font='10px Inter,sans-serif'; ctx.textAlign='left';
+    ctx.fillText(s.label, lx+18, 17.5);
+  });
+}
+
+// Main balance render: called on tab open & filter change
+function bpRenderAll(archRows, ingRows, mes) {
+  archRows = archRows || []; ingRows = ingRows || [];
+
+  // Month filter helper
+  const inMes = (r) => {
+    if (mes === 'todos') return true;
+    return scrMesKey(r.fecha) === mes;
+  };
+
+  const filtArch = archRows.filter(inMes);
+  const filtIng  = ingRows.filter(inMes);
+
+  // ── Consumo teórico: cajas × BOPP_por_caja ──────────────────
+  const consumoTeorico = filtArch.reduce((s,r) => s + r.cajas * bpGetBoppKg(r.producto), 0);
+
+  // ── Scrap papel: daily total, avoid double-counting (same value duplicated per product per day)
+  const scrapByDate = {};
+  filtArch.forEach(r => {
+    if (r.scrapPapel > 0) scrapByDate[r.fecha] = r.scrapPapel;
+  });
+  const scrapTotal = Object.values(scrapByDate).reduce((s,v) => s+v, 0);
+
+  // ── Ingresado from INGRESOS_INSUMOS ─────────────────────────
+  const totalIngresado = filtIng.reduce((s,r) => s + r.cantidad, 0);
+
+  const total   = consumoTeorico + scrapTotal;
+  const pctScrap = total > 0 ? (scrapTotal / total * 100) : 0;
+
+  // ── KPIs ────────────────────────────────────────────────────
+  const setKpi = (id, txt) => { const el=document.getElementById(id); if(el) el.textContent=txt; };
+  setKpi('bpIngresado', totalIngresado > 0 ? totalIngresado.toFixed(1) + ' kg' : 'N/D');
+  setKpi('bpConsumo',   consumoTeorico.toFixed(1) + ' kg');
+  setKpi('bpScrap',     scrapTotal.toFixed(2) + ' kg');
+  setKpi('bpPct',       pctScrap.toFixed(1) + '%');
+
+  // ── Donut: consumo vs scrap ──────────────────────────────────
+  scrDonut('bpCDonut', [
+    { label:'Consumo (receta)', value: Math.max(consumoTeorico,0), color:'#1a7fd4' },
+    { label:'Scrap papel',      value: Math.max(scrapTotal,0),     color:'#f85149' },
+  ]);
+
+  // ── Grouped bar by month ─────────────────────────────────────
+  const MES_NAME = {'2026-03':'Mar','2026-04':'Abr','2026-05':'May','2026-06':'Jun','2026-07':'Jul'};
+  const byMes = {};
+  filtArch.forEach(r => {
+    const mk = scrMesKey(r.fecha);
+    if (!mk) return;
+    if (!byMes[mk]) byMes[mk] = { consumo: 0, scrapDates: {} };
+    byMes[mk].consumo += r.cajas * bpGetBoppKg(r.producto);
+    if (r.scrapPapel > 0) byMes[mk].scrapDates[r.fecha] = r.scrapPapel;
+  });
+  const mesKeys = Object.keys(byMes).sort();
+  bpBarGrouped('bpCMes',
+    mesKeys.map(mk => MES_NAME[mk] || mk),
+    [
+      { label:'Consumo receta',  color:'rgb(26,127,212)',  values: mesKeys.map(mk => +byMes[mk].consumo.toFixed(2)) },
+      { label:'Scrap papel',     color:'rgb(248,81,73)',   values: mesKeys.map(mk => +Object.values(byMes[mk].scrapDates).reduce((s,v)=>s+v,0).toFixed(2)) },
+    ]
+  );
+
+  // ── Daily dual-line (from when scrap tracking started: May 2026) ──
+  const byDay = {};
+  filtArch.forEach(r => {
+    const fd = r.fecha;
+    if (!byDay[fd]) byDay[fd] = { consumo: 0, scrap: 0 };
+    byDay[fd].consumo += r.cajas * bpGetBoppKg(r.producto);
+    if (r.scrapPapel > 0) byDay[fd].scrap = r.scrapPapel;
+  });
+  const sortDate = (d) => {
+    const p = d.split('/');
+    return p.length >= 3 ? new Date(+p[2], +p[1]-1, +p[0]).getTime() : 0;
+  };
+  const dayKeys = Object.keys(byDay)
+    .filter(d => { const p=d.split('/'); return p.length>=3 && +p[1]>=5; }) // May+
+    .sort((a,b) => sortDate(a)-sortDate(b));
+
+  bpLineDual(
+    'bpCDiario',
+    dayKeys,
+    dayKeys.map(d => +(byDay[d]?.consumo || 0).toFixed(3)),
+    dayKeys.map(d => byDay[d]?.scrap || 0)
+  );
+
+  // ── Table by product ─────────────────────────────────────────
+  // Accumulate cajas per product (unique)
+  const prodCajas = {};
+  filtArch.forEach(r => {
+    const bk = bpGetBoppKg(r.producto);
+    if (!bk) return;
+    prodCajas[r.producto] = (prodCajas[r.producto]||0) + r.cajas;
+  });
+  // Attribute daily scrap proportionally by cajas
+  const dayTotCajas = {};
+  filtArch.forEach(r => {
+    if (!bpGetBoppKg(r.producto)) return;
+    dayTotCajas[r.fecha] = (dayTotCajas[r.fecha]||0) + r.cajas;
+  });
+  const prodScrap = {};
+  filtArch.forEach(r => {
+    if (!bpGetBoppKg(r.producto) || r.scrapPapel <= 0) return;
+    const frac = dayTotCajas[r.fecha] > 0 ? r.cajas / dayTotCajas[r.fecha] : 0;
+    prodScrap[r.producto] = (prodScrap[r.producto]||0) + r.scrapPapel * frac;
+  });
+
+  const prodData = Object.keys(prodCajas)
+    .map(p => ({
+      producto: p,
+      cajas: prodCajas[p],
+      bk: bpGetBoppKg(p),
+      consumo: prodCajas[p] * bpGetBoppKg(p),
+      scrap: prodScrap[p] || 0
+    }))
+    .sort((a,b) => b.consumo - a.consumo);
+
+  const tbody = document.getElementById('bpTbody');
+  if (!tbody) return;
+  tbody.innerHTML = prodData.map(r => {
+    const tot = r.consumo + r.scrap;
+    const pct = tot > 0 ? (r.scrap/tot*100) : 0;
+    const pctColor = pct > 10 ? '#f85149' : pct > 5 ? '#d29922' : '#3fb950';
+    return `<tr>
+      <td>${r.producto}</td>
+      <td style="text-align:right">${r.cajas.toLocaleString('es-AR')}</td>
+      <td style="text-align:right;color:rgba(255,255,255,0.55)">${(r.bk*1000).toFixed(0)} g</td>
+      <td style="text-align:right;color:#79c0ff;font-weight:700">${r.consumo.toFixed(2)} kg</td>
+      <td style="text-align:right;color:#f85149">${r.scrap.toFixed(2)} kg</td>
+      <td style="text-align:right;font-weight:700;color:${pctColor}">${pct.toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+}
+
 function initScrap() {
   const rows  = window._SCRAP_ROWS || [];
   const prows = window._PAPEL_ROWS || [];
   scrRenderAll(rows, prows, 'todos');
+  bpRenderAll(window._ARCHIVO_ROWS, window._INGRESOS_ROWS, 'todos');
 }
 
 function initLogistica(){logUpdateKPIs('todos');const ae=Object.entries(LOG_ALL_DIAS);logDrawBarV('lcDiario',ae.map(([d])=>{const p=d.split('-');return p[2]*1+'/'+p[1]*1;}),ae.map(([,v])=>v));logDrawDonut('lcProductos',LOG_PRODUCTOS);logDrawBarH('lcClientes',[...LOG_CLIENTES].sort((a,b)=>b[1]-a[1]));logDrawPie('lcTransporte',LOG_TRANSPORTES);logDrawHeatmap('lcHeatmap');logDrawGroupedBar('lcClientesMes',LOG_CLIENTES_MES);logBuildTable();}
