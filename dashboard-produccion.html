@@ -715,23 +715,23 @@
     <div class="log-kpi-row">
       <div class="log-kpi c-blue">
         <div class="log-kpi-label">📦 Cajas Despachadas</div>
-        <div class="log-kpi-value c-blue" id="lkCajas">24.880</div>
-        <div class="log-kpi-sub" id="lkCajasSub">Total del período</div>
+        <div class="log-kpi-value c-blue" id="lkCajas">—</div>
+        <div class="log-kpi-sub" id="lkCajasSub"></div>
       </div>
       <div class="log-kpi c-green">
         <div class="log-kpi-label">🚛 Remitos / Envíos</div>
-        <div class="log-kpi-value c-green" id="lkRemitos">86</div>
-        <div class="log-kpi-sub" id="lkRemitosSub">Abr 15 → Jun 19</div>
+        <div class="log-kpi-value c-green" id="lkRemitos">—</div>
+        <div class="log-kpi-sub" id="lkRemitosSub"></div>
       </div>
       <div class="log-kpi c-orange">
         <div class="log-kpi-label">🏢 Clientes Únicos</div>
-        <div class="log-kpi-value c-orange" id="lkClientes">18</div>
-        <div class="log-kpi-sub" id="lkClientesSub">En el período</div>
+        <div class="log-kpi-value c-orange" id="lkClientes">—</div>
+        <div class="log-kpi-sub" id="lkClientesSub"></div>
       </div>
       <div class="log-kpi c-purple">
         <div class="log-kpi-label">📊 Prom. Cajas/Envío</div>
-        <div class="log-kpi-value c-purple" id="lkProm">289</div>
-        <div class="log-kpi-sub" id="lkPromSub">Por remito</div>
+        <div class="log-kpi-value c-purple" id="lkProm">—</div>
+        <div class="log-kpi-sub" id="lkPromSub"></div>
       </div>
     </div>
 
@@ -1288,6 +1288,9 @@ async function loadData() {
   if (salidasRes?.status === 'fulfilled' && salidasRes.value &&
       salidasHdrRes?.status === 'fulfilled' && salidasHdrRes.value) {
     parseSalidasLive(salidasRes.value, salidasHdrRes.value);
+    // If Logística tab is already visible, refresh it with real data
+    const logTab = document.getElementById('tab-logistica');
+    if (logTab && logTab.classList.contains('active')) { initLogistica(); }
   }
   // --- HISTORICO ---
   if (histRes.status === 'fulfilled') {
