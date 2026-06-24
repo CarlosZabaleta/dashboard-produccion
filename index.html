@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Dashboard de Producción</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iIzBkMTExNyIvPgogIDxyZWN0IHg9IjIuNSIgeT0iMjEiIHdpZHRoPSI2LjUiIGhlaWdodD0iOC41IiByeD0iMS41IiBmaWxsPSIjMWY2ZmViIi8+CiAgPHJlY3QgeD0iMTIuNSIgeT0iMTEiIHdpZHRoPSI2LjUiIGhlaWdodD0iMTguNSIgcng9IjEuNSIgZmlsbD0iIzU4YTZmZiIvPgogIDxyZWN0IHg9IjIyLjUiIHk9IjE2IiB3aWR0aD0iNi41IiBoZWlnaHQ9IjEzLjUiIHJ4PSIxLjUiIGZpbGw9IiMzODhiZmQiLz4KICA8bGluZSB4MT0iMiIgeTE9IjMwIiB4Mj0iMzAiIHkyPSIzMCIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBvbHlsaW5lIHBvaW50cz0iNS43NSwxOSAxNS43NSw5LjUgMjUuNzUsMTQuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM2ZiOTUwIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPg==">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -715,23 +718,23 @@
     <div class="log-kpi-row">
       <div class="log-kpi c-blue">
         <div class="log-kpi-label">📦 Cajas Despachadas</div>
-        <div class="log-kpi-value c-blue" id="lkCajas">24.880</div>
-        <div class="log-kpi-sub" id="lkCajasSub">Total del período</div>
+        <div class="log-kpi-value c-blue" id="lkCajas">—</div>
+        <div class="log-kpi-sub" id="lkCajasSub"></div>
       </div>
       <div class="log-kpi c-green">
         <div class="log-kpi-label">🚛 Remitos / Envíos</div>
-        <div class="log-kpi-value c-green" id="lkRemitos">86</div>
-        <div class="log-kpi-sub" id="lkRemitosSub">Abr 15 → Jun 19</div>
+        <div class="log-kpi-value c-green" id="lkRemitos">—</div>
+        <div class="log-kpi-sub" id="lkRemitosSub"></div>
       </div>
       <div class="log-kpi c-orange">
         <div class="log-kpi-label">🏢 Clientes Únicos</div>
-        <div class="log-kpi-value c-orange" id="lkClientes">18</div>
-        <div class="log-kpi-sub" id="lkClientesSub">En el período</div>
+        <div class="log-kpi-value c-orange" id="lkClientes">—</div>
+        <div class="log-kpi-sub" id="lkClientesSub"></div>
       </div>
       <div class="log-kpi c-purple">
         <div class="log-kpi-label">📊 Prom. Cajas/Envío</div>
-        <div class="log-kpi-value c-purple" id="lkProm">289</div>
-        <div class="log-kpi-sub" id="lkPromSub">Por remito</div>
+        <div class="log-kpi-value c-purple" id="lkProm">—</div>
+        <div class="log-kpi-sub" id="lkPromSub"></div>
       </div>
     </div>
 
@@ -959,6 +962,8 @@ const SCRAP_URL      = 'https://docs.google.com/spreadsheets/d/1UnmceONjjrVrHcN6
 const SCRAP_PAPEL_URL = 'https://docs.google.com/spreadsheets/d/1UnmceONjjrVrHcN6cUmaWie6m4e1swogyfuazpWk0-E/gviz/tq?tqx=out:csv&sheet=SCRAP_PAPEL';
 const ARCHIVO_URL      = 'https://docs.google.com/spreadsheets/d/1Qu5-lvTKjgIeSKCt8pqYYiYF9Qd5WfMDlpeeGkgdFnM/gviz/tq?tqx=out:csv&sheet=ARCHIVO';
 const INGRESOS_URL     = 'https://docs.google.com/spreadsheets/d/1Qu5-lvTKjgIeSKCt8pqYYiYF9Qd5WfMDlpeeGkgdFnM/gviz/tq?tqx=out:csv&sheet=INGRESOS_INSUMOS';
+const SALIDAS_URL        = 'https://docs.google.com/spreadsheets/d/1Qu5-lvTKjgIeSKCt8pqYYiYF9Qd5WfMDlpeeGkgdFnM/gviz/tq?tqx=out:json&sheet=SALIDAS';
+const SALIDAS_HDR_URL    = 'https://docs.google.com/spreadsheets/d/1Qu5-lvTKjgIeSKCt8pqYYiYF9Qd5WfMDlpeeGkgdFnM/gviz/tq?tqx=out:json&sheet=SALIDAS_HEADER';
 
 // ============================================================
 // GLOBAL STATE (populated by loadData)
@@ -1118,18 +1123,108 @@ function parseDateTime(str) {
 // ============================================================
 // DATA LOADING
 // ============================================================
+function parseGvizJson(text) {
+  const s = text.replace(/^\/\*[^*]+\*\/\s*google\.visualization\.Query\.setResponse\(/, '').replace(/\);\s*$/, '');
+  return JSON.parse(s);
+}
+function logNormCliente(c) {
+  if (!c) return '';
+  const n = c.trim().toLowerCase();
+  if (n.includes('hamsa')) return 'Hamsa';
+  if (n === '2 hermanos' || n.startsWith('dos hermano')) return '2 Hermanos';
+  if (n.includes('hys') || n.startsWith('h&s')) return 'HyS Representaciones';
+  if (n.includes('orcos')) return 'Orcos s.a.s';
+  if (n.includes('millan') || n.includes('millán')) return 'Millan';
+  if (n.includes('mellizo')) return 'Los Mellizos';
+  if (n.includes('santa fe')) return 'Santa Fe Mdo.Mayorista';
+  if (n.includes('pujanza')) return 'La Pujanza';
+  if (n.includes('kepler')) return 'Distrib. Kepler';
+  return c.trim();
+}
+function logNormTransporte(t) {
+  if (!t) return 'Otros';
+  const n = t.trim().toLowerCase();
+  if (n === 'propio') return 'Propio';
+  if (n.includes('damot')) return 'Damotta';
+  if (n.includes('hamsa')) return 'Hamsa';
+  if (n === '-' || n.startsWith('—') || n === '') return 'Sin dato';
+  return t.trim();
+}
+function parseSalidasLive(sText, hText) {
+  try {
+    const COLS = ['#58a6ff','#3fb950','#d29922','#bc8cff','#f778ba','#f85149','#79c0ff','#56d364','#e3b341','#db6d28'];
+    const sal = parseGvizJson(sText).table.rows;
+    const hdr = parseGvizJson(hText).table.rows;
+    const MONTH_LABELS = {'2026-04':'Abril','2026-05':'Mayo','2026-06':'Junio','2026-07':'Julio','2026-08':'Agosto','2026-09':'Sep','2026-10':'Oct','2026-11':'Nov','2026-12':'Dic'};
+    const salidas = sal.map(r => {
+      const ds = r.c[0]?.f || '';
+      const dp = ds.split(/[\s/]/);
+      const fecha = dp.length >= 3 ? dp[2]+'-'+dp[1].padStart(2,'0')+'-'+dp[0].padStart(2,'0') : '';
+      const mes = fecha.substring(0,7);
+      const dt = fecha ? new Date(+dp[2], +dp[1]-1, +dp[0]) : null;
+      let semKey = '';
+      if (dt) { const day=dt.getDay(); const diff=dt.getDate()-day+(day===0?-6:1); const ws=new Date(dt); ws.setDate(diff); semKey=ws.getFullYear()+'-'+String(ws.getMonth()+1).padStart(2,'0')+'-'+String(ws.getDate()).padStart(2,'0'); }
+      return { fecha, mes, semKey, producto:(r.c[1]?.v||'').trim(), cajas:r.c[2]?.v||0, cliente:logNormCliente(r.c[3]?.v||''), transporte:logNormTransporte(r.c[4]?.v||''), headerId:r.c[6]?.v||'' };
+    }).filter(r => r.fecha && r.cajas > 0 && r.cliente);
+    const hdrs = hdr.map(r => ({ id:r.c[0]?.v||'', fecha:r.c[1]?.f||'', cliente:logNormCliente(r.c[2]?.v||''), transporte:logNormTransporte(r.c[3]?.v||''), remito:r.c[4]?.v||'', obs:r.c[5]?.v||'' })).filter(r=>r.id&&r.cliente);
+    const meses = [...new Set(salidas.map(r=>r.mes))].sort();
+    // LOG_CLIENTES
+    const cM={};
+    salidas.forEach(r=>{cM[r.cliente]=(cM[r.cliente]||0)+r.cajas;});
+    const cA=Object.entries(cM).sort((a,b)=>b[1]-a[1]);
+    LOG_CLIENTES=[...cA.slice(0,9).map(([c,v])=>[c,v]),['Otros',cA.slice(9).reduce((s,[,v])=>s+v,0)]].filter(([,v])=>v>0);
+    // LOG_PRODUCTOS
+    const pM={};
+    salidas.forEach(r=>{let p=r.producto.replace('TOSTADA ','').replace(' LIBERA','').replace(' 2 HERMANOS','').trim()||'OTROS';pM[p]=(pM[p]||0)+r.cajas;});
+    LOG_PRODUCTOS=Object.entries(pM).sort((a,b)=>b[1]-a[1]).map(([p,v],i)=>[p,v,COLS[i%COLS.length]]);
+    // LOG_TRANSPORTES (pie: [name, pct, color])
+    const tM={};
+    salidas.forEach(r=>{const t=r.transporte==='Sin dato'?'Otros':r.transporte;tM[t]=(tM[t]||0)+r.cajas;});
+    const tc=salidas.reduce((s,r)=>s+r.cajas,0);
+    LOG_TRANSPORTES=Object.entries(tM).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([t,v],i)=>[t,Math.round(v/tc*100),COLS[i%COLS.length]]);
+    // LOG_ALL_DIAS
+    const dM={};
+    salidas.forEach(r=>{dM[r.fecha]=(dM[r.fecha]||0)+r.cajas;});
+    Object.keys(LOG_ALL_DIAS).forEach(k=>delete LOG_ALL_DIAS[k]);
+    Object.assign(LOG_ALL_DIAS, dM);
+    // LOG_SEMANAS
+    const sM={};
+    salidas.forEach(r=>{sM[r.semKey]=(sM[r.semKey]||0)+r.cajas;});
+    LOG_SEMANAS=Object.entries(sM).sort((a,b)=>a[0].localeCompare(b[0])).map(([k,v])=>{const d=new Date(k+'T12:00:00');return [d.getDate()+'/'+(d.getMonth()+1),v];});
+    // LOG_KPI_MES
+    const kM={todos:{cajas:0,remSet:new Set(),cliSet:new Set(),diasSet:new Set()}};
+    meses.forEach(m=>{kM[m]={cajas:0,remSet:new Set(),cliSet:new Set(),diasSet:new Set()};});
+    salidas.forEach(r=>{kM.todos.cajas+=r.cajas;if(r.headerId)kM.todos.remSet.add(r.headerId);kM.todos.cliSet.add(r.cliente);kM.todos.diasSet.add(r.fecha);if(kM[r.mes]){kM[r.mes].cajas+=r.cajas;if(r.headerId)kM[r.mes].remSet.add(r.headerId);kM[r.mes].cliSet.add(r.cliente);kM[r.mes].diasSet.add(r.fecha);}});
+    const allD=[...kM.todos.diasSet].sort();
+    const sub0=allD.length>0?(()=>{const f=allD[0].split('-');const l=allD[allD.length-1].split('-');return (+f[2])+'/'+f[1]+' → '+(+l[2])+'/'+l[1];})():'';
+    LOG_KPI_MES={};
+    Object.entries(kM).forEach(([k,v])=>{const dias=Math.max(1,v.diasSet.size);const sub=k==='todos'?sub0:(MONTH_LABELS[k]||k)+' '+k.split('-')[0];LOG_KPI_MES[k]={cajas:v.cajas,remitos:v.remSet.size,clientes:v.cliSet.size,prom:Math.round(v.cajas/dias),sub};});
+    // LOG_CLIENTES_MES (keys = month strings e.g. '2026-04')
+    const cMM={};
+    salidas.forEach(r=>{if(!cMM[r.cliente])cMM[r.cliente]={};cMM[r.cliente][r.mes]=(cMM[r.cliente][r.mes]||0)+r.cajas;});
+    LOG_CLIENTES_MES=Object.entries(cMM).map(([c,mm])=>{const o={name:c};meses.forEach(m=>{o[m]=mm[m]||0;});return o;}).sort((a,b)=>meses.reduce((s,m)=>s+(b[m]||0)-(a[m]||0),0)).slice(0,10);
+    window._LOG_MESES=meses;
+    // LOG_REMITOS
+    const hC={};
+    salidas.forEach(r=>{if(r.headerId)hC[r.headerId]=(hC[r.headerId]||0)+r.cajas;});
+    LOG_REMITOS=hdrs.slice(-30).reverse().slice(0,25).map(h=>({f:h.fecha.substring(0,10),c:h.cliente,t:h.transporte,n:h.remito,o:h.obs,v:hC[h.id]||0}));
+    console.log('[Logística] Cargado en vivo:', salidas.length, 'despachos,', tc, 'cajas,', hdrs.length, 'remitos');
+  } catch(e) { console.warn('parseSalidasLive error:', e); }
+}
 async function loadData() {
   showLoading(true);
   hideError();
 
   const ts = '&_=' + Date.now();
-  const [histRes, kgRes, scrapRes, papelRes, archivoRes, ingresosRes] = await Promise.allSettled([
+  const [histRes, kgRes, scrapRes, papelRes, archivoRes, ingresosRes, salidasRes, salidasHdrRes] = await Promise.allSettled([
     fetch(SHEET_URL + ts).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }),
     fetch(KG_SHEET_URL + ts).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); }),
     fetch(SCRAP_URL + ts).then(r => r.text()),
     fetch(SCRAP_PAPEL_URL + ts).then(r => r.text()),
     fetch(ARCHIVO_URL + ts).then(r => r.text()).catch(()=>null),
-    fetch(INGRESOS_URL + ts).then(r => r.text()).catch(()=>null)
+    fetch(INGRESOS_URL + ts).then(r => r.text()).catch(()=>null),
+    fetch(SALIDAS_URL + ts).then(r => r.text()).catch(()=>null),
+    fetch(SALIDAS_HDR_URL + ts).then(r => r.text()).catch(()=>null)
   ]);
 
   // --- SCRAP DATA (parse and store globally) ---
@@ -1191,6 +1286,14 @@ async function loadData() {
         return { fecha: fechaRaw, insumoId, cantidad };
       }).filter(Boolean);
     } catch(e) { console.warn('INGRESOS parse fail:', e); }
+  }
+  // --- SALIDAS / SALIDAS_HEADER (Logística live data) ---
+  if (salidasRes?.status === 'fulfilled' && salidasRes.value &&
+      salidasHdrRes?.status === 'fulfilled' && salidasHdrRes.value) {
+    parseSalidasLive(salidasRes.value, salidasHdrRes.value);
+    // If Logística tab is already visible, refresh it with real data
+    const logTab = document.getElementById('tab-logistica');
+    if (logTab && logTab.classList.contains('active')) { initLogistica(); }
   }
   // --- HISTORICO ---
   if (histRes.status === 'fulfilled') {
@@ -1890,31 +1993,14 @@ function filtrarTablaDetalle() {
 // ============================================================
 // LOGÍSTICA — Canvas 2D charts (no external deps)
 // ============================================================
-const LOG_ALL_DIAS = {
-  '2026-04-15':410,'2026-04-16':520,'2026-04-17':350,
-  '2026-04-20':180,'2026-04-21':280,'2026-04-22':640,
-  '2026-04-23':450,'2026-04-24':380,'2026-04-28':590,
-  '2026-04-29':1240,'2026-04-30':500,
-  '2026-05-04':680,'2026-05-05':450,'2026-05-06':320,
-  '2026-05-07':580,'2026-05-08':870,'2026-05-12':400,
-  '2026-05-13':550,'2026-05-14':780,'2026-05-15':1080,
-  '2026-05-16':460,'2026-05-19':390,'2026-05-20':720,
-  '2026-05-21':680,'2026-05-22':450,'2026-05-23':540,
-  '2026-05-26':380,'2026-05-27':620,'2026-05-28':530,
-  '2026-05-29':480,'2026-05-30':370,
-  '2026-06-01':580,'2026-06-02':920,'2026-06-03':450,
-  '2026-06-04':380,'2026-06-05':520,'2026-06-09':610,
-  '2026-06-10':480,'2026-06-11':720,'2026-06-12':640,
-  '2026-06-13':500,'2026-06-16':390,'2026-06-17':850,
-  '2026-06-18':1480,'2026-06-19':490
-};
-const LOG_PRODUCTOS=[['CLASICA LIBERA',11800,'#58a6ff'],['DULCE LIBERA',3900,'#3fb950'],['REBOZADOR LIBERA',3600,'#d29922'],['SIN SAL LIBERA',2400,'#bc8cff'],['Tostadita CLASICA LIB',1900,'#f778ba'],['CLASICA 2 HERMANOS',1700,'#f85149'],['Tostadita SIN SAL LIB',650,'#79c0ff'],['SIN SAL 2 HERMANOS',480,'#56d364']];
-const LOG_CLIENTES=[['Hamsa',7100],['HyS Representaciones SRL',4200],['Santa Fe Mdo.Mayorista',3100],['Orcos s.a.s',2300],['La Pujanza',1750],['Millan',1400],['Signos',1150],['Evelin Serruya',850],['Diego Grondona',580],['Otros',2000]];
-const LOG_TRANSPORTES=[['Damotta',38,'#58a6ff'],['Hamsa',25,'#3fb950'],['Propio',17,'#d29922'],['Garage Rock',9,'#bc8cff'],['Logística Santafesins',6,'#f778ba'],['Mostto',3,'#f85149'],['Otros',2,'#79c0ff']];
-const LOG_SEMANAS=[['S1 15/4',2950],['S2 21/4',1930],['S3 28/4',2330],['S4 4/5',2900],['S5 11/5',3270],['S6 18/5',2780],['S7 25/5',2380],['S8 1/6',2850],['S9 8/6',2950],['S10 15/6',3310]];
-const LOG_CLIENTES_MES=[{name:'Hamsa',apr:1800,may:2800,jun:2500},{name:'HyS Representaciones',apr:600,may:1900,jun:1700},{name:'Santa Fe Mdo.',apr:900,may:1100,jun:1100},{name:'Orcos s.a.s',apr:500,may:900,jun:900},{name:'La Pujanza',apr:400,may:700,jun:650},{name:'Millan',apr:340,may:600,jun:460},{name:'Signos',apr:0,may:700,jun:450}];
-const LOG_KPI_MES={'todos':{cajas:24880,remitos:86,clientes:18,prom:289,sub:'Abr 15 → Jun 19'},'2026-04':{cajas:5540,remitos:18,clientes:10,prom:308,sub:'Abril 2026'},'2026-05':{cajas:10330,remitos:41,clientes:15,prom:252,sub:'Mayo 2026'},'2026-06':{cajas:9010,remitos:27,clientes:13,prom:334,sub:'Junio 2026'}};
-const LOG_REMITOS=[{f:'19/06/2026',c:'Mel Claudio',t:'Maranzano',n:'-',o:'',v:622},{f:'18/06/2026',c:'HAMSA',t:'Damota',n:'427',o:'12 pallets',v:1480},{f:'17/06/2026',c:'Orcos s.a.s',t:'Garage Rock',n:'424',o:'',v:850},{f:'16/06/2026',c:'Signos',t:'Propio',n:'422',o:'',v:390},{f:'13/06/2026',c:'HyS Representaciones SRL',t:'Damotta',n:'418',o:'15 pallets',v:1100},{f:'12/06/2026',c:'La Pujanza',t:'Mostto',n:'416',o:'',v:640},{f:'11/06/2026',c:'Evelin Serruya',t:'Propio',n:'-',o:'Muestras',v:80},{f:'09/06/2026',c:'Santa Fe Mdo.Mayorista',t:'Log.Santafesins',n:'414',o:'8 pallets',v:610},{f:'05/06/2026',c:'Millan',t:'Damotta',n:'412',o:'',v:520},{f:'04/06/2026',c:'Orcos s.a.s',t:'Garage Rock',n:'410',o:'1 pallet',v:380}];
+let LOG_ALL_DIAS = {};
+let LOG_PRODUCTOS = [];
+let LOG_CLIENTES = [];
+let LOG_TRANSPORTES = [];
+let LOG_SEMANAS = [];
+let LOG_CLIENTES_MES = [];
+let LOG_KPI_MES = {};
+let LOG_REMITOS = [];
 const LOG_HIT_ZONES={},LOG_REDRAW_FNS={},LOG_TT_ACTIVE={};
 function logAttachTooltip(id){const canvas=document.getElementById(id);if(!canvas||canvas._ltt)return;canvas._ltt=true;canvas.addEventListener('mousemove',function(e){const rect=canvas.getBoundingClientRect();const mx=e.clientX-rect.left,my=e.clientY-rect.top;let hit=null;for(const z of(LOG_HIT_ZONES[id]||[])){if(mx>=z.x&&mx<=z.x+z.w&&my>=z.y&&my<=z.y+z.h){hit=z;break;}}const was=LOG_TT_ACTIVE[id];if(hit){canvas.style.cursor='crosshair';if(LOG_REDRAW_FNS[id])LOG_REDRAW_FNS[id]();const ctx=canvas.getContext('2d');logDrawTT(ctx,hit.x+hit.w/2,hit.y,hit.label,hit.value,canvas.getBoundingClientRect().width);LOG_TT_ACTIVE[id]=true;}else{canvas.style.cursor='default';if(was){if(LOG_REDRAW_FNS[id])LOG_REDRAW_FNS[id]();}LOG_TT_ACTIVE[id]=false;}});canvas.addEventListener('mouseleave',function(){if(LOG_TT_ACTIVE[id]){if(LOG_REDRAW_FNS[id])LOG_REDRAW_FNS[id]();}LOG_TT_ACTIVE[id]=false;canvas.style.cursor='default';});}
 function logDrawTT(ctx,cx,topY,label,value,canvasW){const v1=value.toLocaleString('es-AR')+' cajas',v2=label;ctx.font='bold 12px sans-serif';const tw1=ctx.measureText(v1).width;ctx.font='10px sans-serif';const tw2=ctx.measureText(v2).width;const bw=Math.max(tw1,tw2)+22,bh=38;let bx=cx-bw/2,by=topY-bh-10;if(bx<4)bx=4;if(bx+bw>canvasW-4)bx=canvasW-bw-4;if(by<4)by=topY+10;ctx.save();ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=10;ctx.shadowOffsetY=3;logRRect(ctx,bx,by,bw,bh,6);ctx.fillStyle='#1c2333';ctx.fill();ctx.shadowBlur=0;ctx.shadowOffsetY=0;ctx.strokeStyle='#388bfd';ctx.lineWidth=1;ctx.stroke();ctx.font='bold 12px sans-serif';ctx.fillStyle='#e6edf3';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(v1,bx+bw/2,by+6);ctx.font='10px sans-serif';ctx.fillStyle='#8b949e';ctx.fillText(v2,bx+bw/2,by+21);ctx.restore();}
@@ -1927,9 +2013,9 @@ function logDrawBarH(id,items){const c=logGetCtx(id);if(!c)return;const{ctx,W,H}
 function logDrawPie(id,items){const c=logGetCtx(id);if(!c)return;const{ctx,W,H}=c;const total=items.reduce((s,[,v])=>s+v,0);const cx=Math.min(W*.28,H*.48+4),cy=H/2,r=Math.min(cx-10,cy-10,90);let ang=-Math.PI/2;items.forEach(([,val,col])=>{const sw=(val/total)*Math.PI*2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,ang,ang+sw);ctx.closePath();ctx.fillStyle=col;ctx.fill();ctx.strokeStyle='#161b22';ctx.lineWidth=2;ctx.stroke();ang+=sw;});const lx=cx+r+16,lh=Math.min(22,(H-16)/items.length),ly0=Math.max(10,(H-items.length*lh)/2);items.forEach(([lbl,val,col],i)=>{const y=ly0+i*lh;ctx.fillStyle=col;ctx.fillRect(lx,y+2,10,10);ctx.fillStyle='#e6edf3';ctx.font='10px sans-serif';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText((lbl.length>22?lbl.slice(0,21)+'...':lbl)+'  '+val+'%',lx+14,y);});}
 function logDrawLine(id,labels,values){const c=logGetCtx(id);if(!c)return;const{ctx,W,H}=c;LOG_HIT_ZONES[id]=[];const pad={t:16,r:16,b:38,l:46};const cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;const mn=Math.min(...values)*.88,mx=Math.max(...values)*1.1,rng=mx-mn;const n=labels.length;const px=i=>pad.l+(i/(n-1))*cw,py=v=>pad.t+ch*(1-(v-mn)/rng);[0,.25,.5,.75,1].forEach(f=>{const y=pad.t+ch*(1-f);ctx.strokeStyle='#21262d';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cw,y);ctx.stroke();if(f>0){ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(logFmt(Math.round(mn+rng*f)),pad.l-5,y);}});ctx.beginPath();ctx.moveTo(px(0),pad.t+ch);labels.forEach((_,i)=>ctx.lineTo(px(i),py(values[i])));ctx.lineTo(px(n-1),pad.t+ch);ctx.closePath();ctx.fillStyle='#3fb95015';ctx.fill();ctx.beginPath();ctx.moveTo(px(0),py(values[0]));for(let i=1;i<n;i++){const cp=(px(i-1)+px(i))/2;ctx.bezierCurveTo(cp,py(values[i-1]),cp,py(values[i]),px(i),py(values[i]));}ctx.strokeStyle='#3fb950';ctx.lineWidth=2.5;ctx.stroke();const R=6;labels.forEach((lbl,i)=>{const x=px(i),y=py(values[i]);ctx.beginPath();ctx.arc(x,y,R,0,Math.PI*2);ctx.fillStyle='#3fb950';ctx.fill();ctx.strokeStyle='#161b22';ctx.lineWidth=2;ctx.stroke();LOG_HIT_ZONES[id].push({x:x-R,y:y-R,w:R*2,h:R*2,label:lbl,value:values[i]});const skip=n>8?2:1;if(i%skip===0){ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(lbl,x,pad.t+ch+8);}});LOG_REDRAW_FNS[id]=()=>logDrawLine(id,labels,values);logAttachTooltip(id);}
 function logDrawHeatmap(id){const c=logGetCtx(id);if(!c)return;const{ctx,W,H}=c;LOG_HIT_ZONES[id]=[];function wkKey(ds){const d=new Date(ds+'T12:00:00');const dow=d.getDay()||7;const m=new Date(d);m.setDate(d.getDate()-(dow-1));return m.toISOString().slice(0,10);}const lookup={},weekSet=new Set();Object.entries(LOG_ALL_DIAS).forEach(([ds,cajas])=>{const d=new Date(ds+'T12:00:00');const dow=d.getDay()||7;if(dow===7)return;const wk=wkKey(ds);weekSet.add(wk);lookup[wk+'_'+dow]=cajas;});const weeks=[...weekSet].sort();const DAYS=['Lun','Mar','Mie','Jue','Vie','Sab'],DOWS=[1,2,3,4,5,6];const nW=weeks.length,nD=DAYS.length;const maxV=Math.max(...Object.values(lookup));const padL=38,padT=10,padB=32,padR=8;const cellW=(W-padL-padR)/nW,cellH=(H-padT-padB)/nD,gap=3;DAYS.forEach((d,i)=>{ctx.fillStyle='#8b949e';ctx.font='10px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(d,padL-6,padT+i*cellH+cellH/2);});weeks.forEach((wk,wi)=>{const start=new Date(wk+'T12:00:00');const end=new Date(start);end.setDate(start.getDate()+5);const sd=start.getDate(),sm=start.getMonth()+1;const ed=end.getDate(),em=end.getMonth()+1;const lbl=sm===em?(sd+'-'+ed+'/'+sm):(sd+'/'+sm+'-'+ed+'/'+em);ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(lbl,padL+wi*cellW+cellW/2,H-padB+4);});weeks.forEach((wk,wi)=>{DOWS.forEach((dow,di)=>{const val=lookup[wk+'_'+dow]||0;const x=padL+wi*cellW+gap/2,y=padT+di*cellH+gap/2;const w=cellW-gap,h=cellH-gap;let fill;if(val===0){fill='#1e2530';}else{const t=val/maxV;let r,g,b;if(t<0.5){const s=t*2;r=Math.round(139+s*(232-139));g=Math.round(26+s*(93-26));b=Math.round(26+s*(4-26));}else{const s=(t-.5)*2;r=Math.round(232+s*(255-232));g=Math.round(93+s*(214-93));b=Math.round(4+s*(0-4));}fill='rgb('+r+','+g+','+b+')';}logRRect(ctx,x,y,w,h,4);ctx.fillStyle=fill;ctx.fill();if(val>0){const dt=new Date(wk+'T12:00:00');dt.setDate(dt.getDate()+(dow-1));const dlbl=DAYS[di]+' '+dt.getDate()+'/'+(dt.getMonth()+1);LOG_HIT_ZONES[id].push({x,y,w,h,label:dlbl,value:val});}});});const lgW=80,lgH=8,lgX=W-padR-lgW,lgY=H-padB+18;const grad=ctx.createLinearGradient(lgX,0,lgX+lgW,0);grad.addColorStop(0,'#1e2530');grad.addColorStop(0.01,'#8b1a1a');grad.addColorStop(0.5,'#e85d04');grad.addColorStop(1,'#ffd60a');logRRect(ctx,lgX,lgY,lgW,lgH,3);ctx.fillStyle=grad;ctx.fill();ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText('menor',lgX,lgY+11);ctx.textAlign='right';ctx.fillText('mayor',lgX+lgW,lgY+11);LOG_REDRAW_FNS[id]=()=>logDrawHeatmap(id);logAttachTooltip(id);}
-function logDrawGroupedBar(id,data){const c=logGetCtx(id);if(!c)return;const{ctx,W,H}=c;LOG_HIT_ZONES[id]=[];const MONTHS=['Abril','Mayo','Junio'],MKEYS=['apr','may','jun'],MCOLS=['#58a6ff','#3fb950','#d29922'];const pad={t:28,r:16,b:38,l:50};const cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;const allVals=data.flatMap(d=>MKEYS.map(k=>d[k]||0));const max=Math.max(...allVals)*1.12;[0,.25,.5,.75,1].forEach(f=>{const y=pad.t+ch*(1-f);ctx.strokeStyle='#21262d';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cw,y);ctx.stroke();if(f>0){ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(logFmt(Math.round(max*f)),pad.l-5,y);}});MONTHS.forEach((m,i)=>{const lx=W-200+i*65;ctx.fillStyle=MCOLS[i];ctx.fillRect(lx,6,10,10);ctx.fillStyle='#8b949e';ctx.font='10px sans-serif';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(m,lx+14,6);});const n=data.length,gW=cw/n,bW=gW*.8/3,gPad=gW*.1;data.forEach((d,ci)=>{const gx=pad.l+ci*gW+gPad;MKEYS.forEach((k,mi)=>{const val=d[k]||0;if(val===0)return;const x=gx+mi*bW,bh=(val/max)*ch,y=pad.t+ch-bh;logRRect(ctx,x,y,bW-1,bh,2);ctx.fillStyle=MCOLS[mi]+'55';ctx.fill();ctx.strokeStyle=MCOLS[mi];ctx.lineWidth=1;ctx.stroke();LOG_HIT_ZONES[id].push({x,y,w:bW-1,h:bh,label:d.name+' - '+MONTHS[mi],value:val});});ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.textBaseline='top';const short=d.name.length>12?d.name.slice(0,11)+'...':d.name;ctx.fillText(short,pad.l+ci*gW+gW/2,pad.t+ch+8);});LOG_REDRAW_FNS[id]=()=>logDrawGroupedBar(id,data);logAttachTooltip(id);}
+function logDrawGroupedBar(id,data){const c=logGetCtx(id);if(!c)return;const{ctx,W,H}=c;LOG_HIT_ZONES[id]=[];const _mes=window._LOG_MESES||['2026-04','2026-05','2026-06'];const _ML={'2026-04':'Abr','2026-05':'May','2026-06':'Jun','2026-07':'Jul','2026-08':'Ago','2026-09':'Sep','2026-10':'Oct','2026-11':'Nov','2026-12':'Dic'};const MONTHS=_mes.map(m=>_ML[m]||m.slice(5));const MKEYS=_mes;const MCOLS=['#58a6ff','#3fb950','#d29922','#bc8cff','#f778ba'];const pad={t:28,r:16,b:38,l:50};const cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;const allVals=data.flatMap(d=>MKEYS.map(k=>d[k]||0));const max=Math.max(...allVals)*1.12;[0,.25,.5,.75,1].forEach(f=>{const y=pad.t+ch*(1-f);ctx.strokeStyle='#21262d';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cw,y);ctx.stroke();if(f>0){ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(logFmt(Math.round(max*f)),pad.l-5,y);}});MONTHS.forEach((m,i)=>{const lx=W-200+i*65;ctx.fillStyle=MCOLS[i];ctx.fillRect(lx,6,10,10);ctx.fillStyle='#8b949e';ctx.font='10px sans-serif';ctx.textAlign='left';ctx.textBaseline='top';ctx.fillText(m,lx+14,6);});const n=data.length,gW=cw/n,bW=gW*.8/3,gPad=gW*.1;data.forEach((d,ci)=>{const gx=pad.l+ci*gW+gPad;MKEYS.forEach((k,mi)=>{const val=d[k]||0;if(val===0)return;const x=gx+mi*bW,bh=(val/max)*ch,y=pad.t+ch-bh;logRRect(ctx,x,y,bW-1,bh,2);ctx.fillStyle=MCOLS[mi]+'55';ctx.fill();ctx.strokeStyle=MCOLS[mi];ctx.lineWidth=1;ctx.stroke();LOG_HIT_ZONES[id].push({x,y,w:bW-1,h:bh,label:d.name+' - '+MONTHS[mi],value:val});});ctx.fillStyle='#8b949e';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.textBaseline='top';const short=d.name.length>12?d.name.slice(0,11)+'...':d.name;ctx.fillText(short,pad.l+ci*gW+gW/2,pad.t+ch+8);});LOG_REDRAW_FNS[id]=()=>logDrawGroupedBar(id,data);logAttachTooltip(id);}
 function logBuildTable(){document.getElementById('ltbRemitos').innerHTML=LOG_REMITOS.map(r=>'<tr><td style="color:#8b949e;font-size:12px;white-space:nowrap">'+r.f+'</td><td><strong>'+r.c+'</strong></td><td><span class="lttag">'+r.t+'</span></td><td>'+(r.n==='-'?'<span class="lbadge lb-gray">-</span>':'<span class="lbadge lb-blue">'+r.n+'</span>')+'</td><td>'+(r.o?'<span class="lbadge lb-orange">'+r.o+'</span>':'<span style="color:#8b949e;font-size:12px">-</span>')+'</td><td style="text-align:right;font-weight:700;color:#58a6ff">'+r.v.toLocaleString('es-AR')+'</td></tr>').join('');}
-function logUpdateKPIs(mes){const d=LOG_KPI_MES[mes]||LOG_KPI_MES.todos;document.getElementById('lkCajas').textContent=d.cajas.toLocaleString('es-AR');document.getElementById('lkRemitos').textContent=d.remitos;document.getElementById('lkClientes').textContent=d.clientes;document.getElementById('lkProm').textContent=d.prom.toLocaleString('es-AR');['lkCajasSub','lkRemitosSub','lkClientesSub','lkPromSub'].forEach(id=>document.getElementById(id).textContent=d.sub);}
+function logUpdateKPIs(mes){const d=LOG_KPI_MES[mes]||LOG_KPI_MES['todos']||{cajas:0,remitos:0,clientes:0,prom:0,sub:''};document.getElementById('lkCajas').textContent=d.cajas.toLocaleString('es-AR');document.getElementById('lkRemitos').textContent=d.remitos;document.getElementById('lkClientes').textContent=d.clientes;document.getElementById('lkProm').textContent=d.prom.toLocaleString('es-AR');const sub=d.sub||'';['lkCajasSub','lkRemitosSub','lkClientesSub','lkPromSub'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=sub;});}
 function logFiltrar(mes,btn){document.querySelectorAll('.log-filter-btn').forEach(b=>b.classList.remove('active'));if(btn)btn.classList.add('active');logUpdateKPIs(mes);const entries=Object.entries(LOG_ALL_DIAS).filter(([d])=>mes==='todos'||d.startsWith(mes));logDrawBarV('lcDiario',entries.map(([d])=>{const p=d.split('-');return p[2]*1+'/'+p[1]*1;}),entries.map(([,v])=>v));}
 
 // ============================================================
