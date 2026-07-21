@@ -2899,8 +2899,10 @@ function insCtx(id){
   return {ctx,W,H};
 }
 
-function insStackedBar(id,labels,series){
+function insStackedBar(id,labels,series,unit){
+  unit=unit||'';
   const c=insCtx(id); if(!c) return;
+  const cv=document.getElementById(id);
   const {ctx,W,H}=c;
   const pad={t:28,r:16,b:38,l:44};
   const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
@@ -2919,7 +2921,8 @@ function insStackedBar(id,labels,series){
     ctx.fillStyle='rgba(255,255,255,0.35)';ctx.font='9px Inter,sans-serif';ctx.textAlign='right';
     ctx.fillText(v>=1000?Math.round(v/1000)+'k':Math.round(v),pad.l-4,y+3);
   });
-  // Bars
+  // Bars + hit zones
+  const hitZones=[];
   labels.forEach((lbl,i)=>{
     const x=pad.l+i*gap+gap/2-barW/2;
     let yBase=pad.t+cH;
@@ -2929,6 +2932,9 @@ function insStackedBar(id,labels,series){
       ctx.fillStyle=sr.color; ctx.fillRect(x,yBase-bH,barW,bH);
       yBase-=bH;
     });
+    hitZones.push({x,w:barW,y:pad.t,h:cH,label:lbl,
+      segs:series.map(sr=>({label:sr.label,value:sr.data[i]||0,color:sr.color})),
+      total:totals[i],unit});
     ctx.fillStyle='rgba(255,255,255,0.45)';ctx.font='9px Inter,sans-serif';ctx.textAlign='center';
     ctx.fillText(lbl,pad.l+i*gap+gap/2,H-pad.b+14);
   });
@@ -2940,10 +2946,17 @@ function insStackedBar(id,labels,series){
     ctx.fillText(sr.label,lx+12,17);
     lx+=ctx.measureText(sr.label).width+24;
   });
+  cv.__insHits=hitZones; cv.__insW=W; cv.__insH=H;
+  if(!cv.__insTipBound){cv.__insTipBound=true;
+    cv.addEventListener('mousemove',insCanvasTip);
+    cv.addEventListener('mouseleave',insHideTip);
+  }
 }
 
-function insBarH(id,labels,values,colors){
+function insBarH(id,labels,values,colors,unit){
+  unit=unit||'';
   const c=insCtx(id); if(!c) return;
+  const cv=document.getElementById(id);
   const {ctx,W,H}=c;
   const pad={t:6,r:64,b:6,l:150};
   const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
@@ -2952,19 +2965,59 @@ function insBarH(id,labels,values,colors){
   const max=Math.max(...values,1);
   const bH2=Math.min(cH/n*0.72,20);
   const gap=cH/n;
+  const hitZones=[];
   labels.forEach((lbl,i)=>{
     const y=pad.t+i*gap+gap/2-bH2/2;
     const bW=(values[i]/max)*cW;
+    const col=Array.isArray(colors)?colors[i%colors.length]:colors;
     ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.fillRect(pad.l,y,cW,bH2);
-    ctx.fillStyle=Array.isArray(colors)?colors[i%colors.length]:colors;
-    ctx.fillRect(pad.l,y,bW,bH2);
+    ctx.fillStyle=col; ctx.fillRect(pad.l,y,bW,bH2);
     const truncLbl=lbl.length>22?lbl.substring(0,20)+'…':lbl;
     ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='11px Inter,sans-serif';ctx.textAlign='right';
     ctx.fillText(truncLbl,pad.l-6,y+bH2/2+4);
     ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font='10px Inter,sans-serif';ctx.textAlign='left';
     ctx.fillText(Math.round(values[i]).toLocaleString('es-AR'),pad.l+bW+5,y+bH2/2+4);
+    hitZones.push({x:pad.l,w:cW,y,h:bH2,label:lbl,value:values[i],color:col,unit});
   });
+  cv.__insHits=hitZones; cv.__insW=W; cv.__insH=H;
+  if(!cv.__insTipBound){cv.__insTipBound=true;
+    cv.addEventListener('mousemove',insCanvasTip);
+    cv.addEventListener('mouseleave',insHideTip);
+  }
 }
+
+function insCanvasTip(e){
+  const cv=e.currentTarget;
+  const rect=cv.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(cv.__insW/rect.width);
+  const my=(e.clientY-rect.top)*(cv.__insH/rect.height);
+  const hits=cv.__insHits||[];
+  const tip=document.getElementById('insTooltip');
+  if(!tip)return;
+  let found=false;
+  for(const h of hits){
+    if(mx>=h.x&&mx<=h.x+h.w&&my>=h.y&&my<=h.y+h.h){
+      const fv=v=>v>=1?v.toLocaleString('es-AR',{maximumFractionDigits:1}):v.toFixed(2);
+      let html='<div class="ittp-head">'+h.label+'</div>';
+      if(h.segs){
+        h.segs.forEach(s=>{
+          if(s.value>0) html+='<div class="ittp-row"><span class="ittp-dot" style="background:'+s.color+'"></span>'+s.label.split('(')[0].trim()+': <b>'+fv(s.value)+(h.unit?' '+h.unit:'')+'</b></div>';
+        });
+        html+='<div class="ittp-total">Total: '+fv(h.total)+(h.unit?' '+h.unit:'')+'</div>';
+      } else {
+        html+='<div><b>'+fv(h.value)+(h.unit?' '+h.unit:'')+'</b></div>';
+      }
+      tip.innerHTML=html;
+      tip.style.display='block';
+      const tx=Math.min(e.clientX+14,window.innerWidth-270);
+      const ty=Math.max(e.clientY-14,10);
+      tip.style.left=tx+'px'; tip.style.top=ty+'px';
+      found=true; break;
+    }
+  }
+  if(!found)insHideTip();
+}
+function insHideTip(){const t=document.getElementById('insTooltip');if(t)t.style.display='none';}
 
 function insDonut(id,data){
   const c=insCtx(id); if(!c) return;
@@ -3066,10 +3119,10 @@ function insDrawBoppBar(records){
   ];
   // Weekly chart
   const wkKeys=Object.keys(byWeek).sort();
-  insStackedBar('insBoppSem', wkKeys.map(k=>{const d=new Date(k);return d.getDate()+'/'+(d.getMonth()+1);}), BOPPSETS(byWeek));
+  insStackedBar('insBoppSem', wkKeys.map(k=>{const d=new Date(k);return d.getDate()+'/'+(d.getMonth()+1);}), BOPPSETS(byWeek),'kg');
   // Monthly chart
   const msKeys=Object.keys(byMes).sort();
-  insStackedBar('insBoppMes', msKeys.map(mesLbl), BOPPSETS(byMes));
+  insStackedBar('insBoppMes', msKeys.map(mesLbl), BOPPSETS(byMes),'kg');
   // Total horizontal bar (current filter period)
   const totBt=records.reduce((s,r)=>insGetBoppTipo(r.producto)==='bt'?s+r.cajas*insGetBoppKg(r.producto):s,0);
   const totBr=records.reduce((s,r)=>insGetBoppTipo(r.producto)==='br'?s+r.cajas*insGetBoppKg(r.producto):s,0);
@@ -3078,7 +3131,7 @@ function insDrawBoppBar(records){
   insBarH('insBoppProd',
     ['Tostadas Libera','Rebozador','Tostaditas Libera','Dos Hermanos'],
     [+totBt.toFixed(1),+totBr.toFixed(1),+totBti.toFixed(1),+totBd.toFixed(1)],
-    ['#58a6ff','#ffa657','#3fb950','#d29922']
+    ['#58a6ff','#ffa657','#3fb950','#d29922'],'kg'
   );
 }
 
@@ -3114,15 +3167,24 @@ function insUpdatePlanner(){
   const tot001=recs.filter(r=>insGetCaja(r.producto)==='ins001').reduce((s,r)=>s+r.cajas,0);
   const tot002=recs.filter(r=>insGetCaja(r.producto)==='ins002').reduce((s,r)=>s+r.cajas,0);
   const tot003=recs.filter(r=>insGetCaja(r.producto)==='ins003').reduce((s,r)=>s+r.cajas,0);
-  const totBp=recs.reduce((s,r)=>s+r.cajas*insGetBoppKg(r.producto),0);
-  const avg001=tot001/workDays,avg002=tot002/workDays,avg003=tot003/workDays,avgBp=totBp/workDays;
+  // Per-type BOPP totals
+  const totBt=recs.reduce((s,r)=>insGetBoppTipo(r.producto)==='bt'?s+r.cajas*insGetBoppKg(r.producto):s,0);
+  const totBr=recs.reduce((s,r)=>insGetBoppTipo(r.producto)==='br'?s+r.cajas*insGetBoppKg(r.producto):s,0);
+  const totBti=recs.reduce((s,r)=>insGetBoppTipo(r.producto)==='bti'?s+r.cajas*insGetBoppKg(r.producto):s,0);
+  const totBd=recs.reduce((s,r)=>insGetBoppTipo(r.producto)==='bd'?s+r.cajas*insGetBoppKg(r.producto):s,0);
+  const avg001=tot001/workDays,avg002=tot002/workDays,avg003=tot003/workDays;
+  const avgBt=totBt/workDays,avgBr=totBr/workDays,avgBti=totBti/workDays,avgBd=totBd/workDays;
   const cal=dias_stock*(5/7);
   const ord001=Math.ceil(avg001*cal);
   const ord002=Math.ceil(avg002*cal);
   const ord003=Math.ceil(avg003*cal);
-  const ordBp=(avgBp*cal).toFixed(1);
+  const ordBt=(avgBt*cal).toFixed(1);
+  const ordBr=(avgBr*cal).toFixed(1);
+  const ordBti=(avgBti*cal).toFixed(1);
+  const ordBd=(avgBd*cal).toFixed(1);
   const g=id=>document.getElementById(id);
   const fmt=n=>Math.round(n).toLocaleString('es-AR');
+  const fmtKg=n=>parseFloat(n).toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1});
   const refLabel=ref_dias===14?'últimas 2 semanas':ref_dias===28?'últimas 4 semanas':'todo el período';
   if(g('ipIns001')) g('ipIns001').textContent=fmt(ord001);
   if(g('ipIns001Sub')) g('ipIns001Sub').textContent='Promedio diario: '+fmt(Math.round(avg001))+' cajas/día productivo';
@@ -3130,8 +3192,14 @@ function insUpdatePlanner(){
   if(g('ipIns002Sub')) g('ipIns002Sub').textContent='Promedio diario: '+fmt(Math.round(avg002))+' cajas/día productivo';
   if(g('ipIns003')) g('ipIns003').textContent=fmt(ord003);
   if(g('ipIns003Sub')) g('ipIns003Sub').textContent='Promedio diario: '+fmt(Math.round(avg003))+' cajas/día productivo';
-  if(g('ipBopp')) g('ipBopp').textContent=ordBp;
-  if(g('ipBoppSub')) g('ipBoppSub').textContent='Promedio diario: '+parseFloat(avgBp).toFixed(1)+' kg/día productivo';
+  if(g('ipBt'))  g('ipBt').textContent=fmtKg(ordBt);
+  if(g('ipBtSub'))  g('ipBtSub').textContent='Promedio diario: '+fmtKg(avgBt)+' kg/día productivo';
+  if(g('ipBr'))  g('ipBr').textContent=fmtKg(ordBr);
+  if(g('ipBrSub'))  g('ipBrSub').textContent='Promedio diario: '+fmtKg(avgBr)+' kg/día productivo';
+  if(g('ipBti')) g('ipBti').textContent=fmtKg(ordBti);
+  if(g('ipBtiSub')) g('ipBtiSub').textContent='Promedio diario: '+fmtKg(avgBti)+' kg/día productivo';
+  if(g('ipBd'))  g('ipBd').textContent=fmtKg(ordBd);
+  if(g('ipBdSub'))  g('ipBdSub').textContent='Promedio diario: '+fmtKg(avgBd)+' kg/día productivo';
   if(g('ipNota')) g('ipNota').textContent='Calculado sobre la base de '+workDays+' días de producción ('+refLabel+') · stock para '+dias_stock+' días calendario';
   if(g('ipFooter')) g('ipFooter').textContent='✅ Resultado actualizado — si la producción cambia, actualizá el dashboard y recalculá';
 }
