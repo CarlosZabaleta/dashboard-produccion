@@ -406,6 +406,11 @@
   .ins-filter-btn{background:transparent;border:1px solid #30363d;color:#8b949e;padding:5px 14px;border-radius:20px;cursor:pointer;font-size:13px;transition:all .18s}
   .ins-filter-btn.active{background:#1f6feb;border-color:#1f6feb;color:#fff}
   .ins-filter-btn:hover:not(.active){border-color:#58a6ff;color:#58a6ff}
+  #insTooltip{position:fixed;display:none;background:#1e2235;border:1px solid #30363d;border-radius:10px;padding:10px 14px;font-size:12px;color:#e2e8f0;pointer-events:none;z-index:9999;min-width:160px;max-width:260px;box-shadow:0 8px 24px rgba(0,0,0,0.5)}
+  .ittp-head{font-weight:700;font-size:13px;margin-bottom:6px;color:#fff}
+  .ittp-row{display:flex;align-items:center;gap:6px;margin:3px 0;color:#c9d1d9}
+  .ittp-dot{display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .ittp-total{margin-top:6px;padding-top:6px;border-top:1px solid #30363d;font-weight:600;color:#fff}
   .ins-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
   .ins-kpi{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:16px 18px}
   .ins-kpi-label{color:#8b949e;font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
@@ -3323,5 +3328,6 @@ function initInsumos(){
 
 
 </script>
+<div id="insTooltip"></div>
 </body>
 </html>
