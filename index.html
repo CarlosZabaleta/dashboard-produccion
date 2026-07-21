@@ -423,21 +423,52 @@
   .ins-vista-bar{display:flex;gap:6px;margin-bottom:16px}
   .ins-vista-btn{background:transparent;border:1px solid #30363d;color:#8b949e;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;transition:all .15s}
   .ins-vista-btn.active{background:#21262d;border-color:#58a6ff;color:#58a6ff}
-  .ins-planner{background:#161b22;border:1px solid #3fb950;border-radius:12px;padding:22px}
-  .ins-planner-controls{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap}
-  .ins-planner-controls label{color:#8b949e;font-size:13px}
-  .ins-planner-controls input[type=number]{background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:6px 10px;border-radius:8px;font-size:16px;font-weight:700;width:72px;text-align:center}
-  .ins-planner-controls select{background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:6px 10px;border-radius:8px;font-size:13px}
-  .ins-planner-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
-  .ins-plan-card{background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:16px 18px}
-  .ins-plan-card.ins1{border-left:3px solid #58a6ff}
-  .ins-plan-card.ins2{border-left:3px solid #3fb950}
-  .ins-plan-card.ins3{border-left:3px solid #d29922}
-  .ins-plan-card.bpp{border-left:3px solid #bc8cff}
-  .ins-plan-label{color:#8b949e;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
-  .ins-plan-code{color:#30363d;font-size:10px;margin-bottom:2px;font-family:monospace}
-  .ins-plan-value{font-size:1.9rem;font-weight:700;line-height:1.1}
-  .ins-plan-sub{color:#8b949e;font-size:11px;margin-top:4px}
+  /* Planner redesign */
+  .ins-planner{background:#161b22;border:1px solid #3fb950;border-radius:16px;padding:28px;position:relative;overflow:hidden}
+  .ins-planner::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#3fb950,#58a6ff,#bc8cff)}
+  .ins-planner-header{margin-bottom:24px}
+  .ins-planner-header h3{color:#e6edf3;font-size:16px;font-weight:700;margin:0 0 4px}
+  .ins-planner-header p{color:#8b949e;font-size:13px;margin:0}
+  .ins-step{margin-bottom:24px}
+  .ins-step-label{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .ins-step-num{background:#3fb950;color:#0d1117;font-size:11px;font-weight:800;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .ins-step-title{color:#e6edf3;font-size:13px;font-weight:600}
+  .ins-step-hint{color:#8b949e;font-size:12px;margin-left:32px;margin-bottom:10px;line-height:1.4}
+  .ins-ref-btns{display:flex;gap:8px;flex-wrap:wrap;margin-left:32px}
+  .ins-ref-btn{background:#0d1117;border:1px solid #30363d;color:#8b949e;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;transition:all .18s;line-height:1.3;text-align:center}
+  .ins-ref-btn strong{display:block;color:#e6edf3;font-size:15px}
+  .ins-ref-btn.active{background:#0d2818;border-color:#3fb950;color:#3fb950}
+  .ins-ref-btn.active strong{color:#3fb950}
+  .ins-days-row{display:flex;align-items:center;gap:12px;margin-left:32px;flex-wrap:wrap}
+  .ins-days-presets{display:flex;gap:6px}
+  .ins-preset-btn{background:#0d1117;border:1px solid #30363d;color:#8b949e;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;transition:all .18s}
+  .ins-preset-btn.active{background:#1f6feb22;border-color:#58a6ff;color:#58a6ff}
+  .ins-days-input-wrap{display:flex;align-items:center;gap:6px}
+  .ins-days-spin{background:#0d1117;border:1px solid #30363d;color:#8b949e;width:28px;height:36px;border-radius:6px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;user-select:none;transition:all .15s}
+  .ins-days-spin:hover{border-color:#58a6ff;color:#58a6ff}
+  .ins-days-num{background:#0d1117;border:1px solid #58a6ff;color:#58a6ff;font-size:22px;font-weight:800;width:64px;text-align:center;padding:4px 0;border-radius:8px}
+  .ins-days-unit{color:#8b949e;font-size:13px}
+  .ins-step-divider{border:none;border-top:1px solid #21262d;margin:0 0 24px}
+  .ins-result-label{color:#e6edf3;font-size:13px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .ins-result-label .ins-step-num{background:#58a6ff}
+  .ins-result-note{color:#8b949e;font-size:12px;margin-left:32px;margin-bottom:16px}
+  .ins-result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+  .ins-plan-card{background:#0d1117;border:1px solid #30363d;border-radius:12px;padding:18px 20px;position:relative}
+  .ins-plan-card.ins1{border-top:3px solid #58a6ff}
+  .ins-plan-card.ins2{border-top:3px solid #3fb950}
+  .ins-plan-card.ins3{border-top:3px solid #d29922}
+  .ins-plan-card.bpp{border-top:3px solid #bc8cff;grid-column:1/-1}
+  .ins-plan-code{font-family:monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;display:inline-block;margin-bottom:8px}
+  .ins-plan-card.ins1 .ins-plan-code{background:#58a6ff22;color:#58a6ff}
+  .ins-plan-card.ins2 .ins-plan-code{background:#3fb95022;color:#3fb950}
+  .ins-plan-card.ins3 .ins-plan-code{background:#d2992222;color:#d29922}
+  .ins-plan-card.bpp .ins-plan-code{background:#bc8cff22;color:#bc8cff}
+  .ins-plan-name{color:#e6edf3;font-size:13px;font-weight:600;margin-bottom:2px}
+  .ins-plan-desc{color:#8b949e;font-size:11px;margin-bottom:14px;line-height:1.4}
+  .ins-plan-value{font-size:2.2rem;font-weight:800;line-height:1}
+  .ins-plan-unit{color:#8b949e;font-size:12px;font-weight:400;margin-left:4px}
+  .ins-plan-avg{color:#8b949e;font-size:11px;margin-top:8px;padding-top:8px;border-top:1px solid #21262d}
+  .ins-plan-footer{margin-top:20px;padding-top:16px;border-top:1px solid #21262d;color:#8b949e;font-size:12px;text-align:center}
 
 </style>
 </head>
@@ -1069,55 +1100,109 @@
     </div>
   </div>
 
-  <div class="ins-section-title bopp">🎞️ Consumo de BOPP (Papel)</div>
+  <div class="ins-section-title bopp">🎞️ Consumo de BOPP (Papel Film)</div>
   <div class="ins-charts-2col">
     <div class="ins-chart-box">
-      <h4>BOPP por período (kg según receta)</h4>
-      <canvas id="insBoppBar" height="200"></canvas>
+      <h4>Consumo Semanal por Tipo de BOPP (kg)</h4>
+      <canvas id="insBoppSem" height="200"></canvas>
     </div>
     <div class="ins-chart-box">
-      <h4>BOPP por tipo de producto (kg)</h4>
-      <canvas id="insBoppProd" height="200"></canvas>
+      <h4>Consumo Mensual por Tipo de BOPP (kg)</h4>
+      <canvas id="insBoppMes" height="200"></canvas>
     </div>
+  </div>
+  <div class="ins-chart-box" style="margin-top:14px">
+    <h4>Total acumulado por tipo de BOPP — período seleccionado (kg)</h4>
+    <canvas id="insBoppProd" height="120"></canvas>
   </div>
 
   <div class="ins-section-title plan">🛒 Planificador de Compras</div>
   <div class="ins-planner">
-    <div class="ins-planner-controls">
-      <label>Referencia:</label>
-      <select id="insPlanRef" onchange="insUpdatePlanner()">
-        <option value="14">Últimas 2 semanas</option>
-        <option value="28" selected>Últimas 4 semanas</option>
-        <option value="0">Todo el período</option>
-      </select>
-      <label>Días de stock:</label>
-      <input type="number" id="insPlanDias" value="30" min="1" max="365" oninput="insUpdatePlanner()">
+    <div class="ins-planner-header">
+      <h3>¿Cuánto tengo que comprar?</h3>
+      <p>Completá los dos pasos y el sistema calcula automáticamente lo que necesitás pedir.</p>
     </div>
-    <div class="ins-planner-grid">
-      <div class="ins-plan-card ins1">
-        <div class="ins-plan-code">INS001</div>
-        <div class="ins-plan-label">Caja Tostadas 140g Libera</div>
-        <div class="ins-plan-value" id="ipIns001" style="color:#58a6ff">—</div>
-        <div class="ins-plan-sub" id="ipIns001Sub">unidades</div>
+
+    <!-- PASO 1 -->
+    <div class="ins-step">
+      <div class="ins-step-label">
+        <div class="ins-step-num">1</div>
+        <div class="ins-step-title">¿En base a qué período calculamos el consumo?</div>
       </div>
-      <div class="ins-plan-card ins2">
-        <div class="ins-plan-code">INS002</div>
-        <div class="ins-plan-label">Caja Tostaditas 100g Libera</div>
-        <div class="ins-plan-value" id="ipIns002" style="color:#3fb950">—</div>
-        <div class="ins-plan-sub" id="ipIns002Sub">unidades</div>
+      <div class="ins-step-hint">Elegí cuántos días de historial usar para calcular el promedio diario de cajas. Si la producción cambió mucho últimamente, usá menos días.</div>
+      <div class="ins-ref-btns">
+        <button class="ins-ref-btn" onclick="insPlanRef(14,this)"><strong>2 semanas</strong>últimos 14 días</button>
+        <button class="ins-ref-btn active" onclick="insPlanRef(28,this)"><strong>4 semanas</strong>últimos 28 días</button>
+        <button class="ins-ref-btn" onclick="insPlanRef(0,this)"><strong>Todo</strong>Abr → hoy</button>
       </div>
-      <div class="ins-plan-card ins3">
-        <div class="ins-plan-code">INS003</div>
-        <div class="ins-plan-label">Caja Tostadas 140g Dos Hermanos</div>
-        <div class="ins-plan-value" id="ipIns003" style="color:#d29922">—</div>
-        <div class="ins-plan-sub" id="ipIns003Sub">unidades</div>
+    </div>
+    <input type="hidden" id="insPlanRef" value="28">
+
+    <hr class="ins-step-divider">
+
+    <!-- PASO 2 -->
+    <div class="ins-step">
+      <div class="ins-step-label">
+        <div class="ins-step-num">2</div>
+        <div class="ins-step-title">¿Para cuántos días de stock querés comprar?</div>
       </div>
-      <div class="ins-plan-card bpp">
-        <div class="ins-plan-code">INS004–INS010+INS020</div>
-        <div class="ins-plan-label">BOPP Total (papel film)</div>
-        <div class="ins-plan-value" id="ipBopp" style="color:#bc8cff">—</div>
-        <div class="ins-plan-sub" id="ipBoppSub">kg estimados</div>
+      <div class="ins-step-hint">Si querés tener stock para un mes, poné 30. Si querés dos meses, poné 60.</div>
+      <div class="ins-days-row">
+        <div class="ins-days-presets">
+          <button class="ins-preset-btn" onclick="insPlanSetDias(15,this)">15 días</button>
+          <button class="ins-preset-btn active" onclick="insPlanSetDias(30,this)">30 días</button>
+          <button class="ins-preset-btn" onclick="insPlanSetDias(45,this)">45 días</button>
+          <button class="ins-preset-btn" onclick="insPlanSetDias(60,this)">60 días</button>
+        </div>
+        <div class="ins-days-input-wrap">
+          <div class="ins-days-spin" onclick="insPlanAddDias(-1)">−</div>
+          <input type="number" id="insPlanDias" class="ins-days-num" value="30" min="1" max="365" oninput="insUpdatePlanner()">
+          <div class="ins-days-spin" onclick="insPlanAddDias(1)">+</div>
+          <span class="ins-days-unit">días calendario</span>
+        </div>
       </div>
+    </div>
+
+    <hr class="ins-step-divider">
+
+    <!-- RESULTADO -->
+    <div>
+      <div class="ins-result-label">
+        <div class="ins-step-num">✓</div>
+        <span>Resultado — esto es lo que tenés que comprar:</span>
+      </div>
+      <div class="ins-result-note" id="ipNota">Calculando...</div>
+      <div class="ins-result-grid">
+        <div class="ins-plan-card ins1">
+          <span class="ins-plan-code">INS001</span>
+          <div class="ins-plan-name">Caja Tostadas 140g Libera</div>
+          <div class="ins-plan-desc">Para: Clásica, Dulce, Sin Sal y Rebozador Libera</div>
+          <div><span class="ins-plan-value" id="ipIns001" style="color:#58a6ff">—</span><span class="ins-plan-unit">unidades</span></div>
+          <div class="ins-plan-avg" id="ipIns001Sub">promedio diario: —</div>
+        </div>
+        <div class="ins-plan-card ins2">
+          <span class="ins-plan-code">INS002</span>
+          <div class="ins-plan-name">Caja Tostaditas 100g Libera</div>
+          <div class="ins-plan-desc">Para: Tostadita Clásica y Tostadita Sin Sal Libera</div>
+          <div><span class="ins-plan-value" id="ipIns002" style="color:#3fb950">—</span><span class="ins-plan-unit">unidades</span></div>
+          <div class="ins-plan-avg" id="ipIns002Sub">promedio diario: —</div>
+        </div>
+        <div class="ins-plan-card ins3">
+          <span class="ins-plan-code">INS003</span>
+          <div class="ins-plan-name">Caja Tostadas 140g Dos Hermanos</div>
+          <div class="ins-plan-desc">Para: Clásica y Sin Sal Dos Hermanos</div>
+          <div><span class="ins-plan-value" id="ipIns003" style="color:#d29922">—</span><span class="ins-plan-unit">unidades</span></div>
+          <div class="ins-plan-avg" id="ipIns003Sub">promedio diario: —</div>
+        </div>
+        <div class="ins-plan-card bpp">
+          <span class="ins-plan-code">INS004 · INS005 · INS006 · INS007 · INS008 · INS009 · INS010 · INS020</span>
+          <div class="ins-plan-name">BOPP — Papel film</div>
+          <div class="ins-plan-desc">Total de todos los tipos de bobina (por receta)</div>
+          <div><span class="ins-plan-value" id="ipBopp" style="color:#bc8cff">—</span><span class="ins-plan-unit">kg</span></div>
+          <div class="ins-plan-avg" id="ipBoppSub">promedio diario: —</div>
+        </div>
+      </div>
+      <div class="ins-plan-footer" id="ipFooter">⚙️ Ajustá los pasos 1 y 2 para recalcular</div>
     </div>
   </div>
 
@@ -2912,25 +2997,36 @@ function insDonut(id,data){
   });
 }
 
+// ─── BOPP tipo helper ────────────────────────────────────────────────────────
+function insGetBoppTipo(prod){
+  const p=prod.toUpperCase();
+  if(p.includes('TOSTADITA')) return 'bti';   // 0.096
+  if(p.includes('REBOZADOR')) return 'br';    // 0.056
+  if(p.includes('2 HERMANOS')||p.includes('HERMANOS')) return 'bd'; // 0.072
+  return 'bt';                                // 0.048 Tostadas Libera
+}
 // ─── Aggregation ────────────────────────────────────────────────────────────
 function insAgg(records){
   const byDay={},byWeek={},byMes={};
+  const mk=()=>({ins001:0,ins002:0,ins003:0,bopp:0,bt:0,br:0,bti:0,bd:0});
   records.forEach(r=>{
-    const caja=insGetCaja(r.producto), bopp=r.cajas*insGetBoppKg(r.producto);
+    const caja=insGetCaja(r.producto);
+    const bopp=r.cajas*insGetBoppKg(r.producto);
+    const bt=insGetBoppTipo(r.producto);
     // Day
-    if(!byDay[r.fecha]) byDay[r.fecha]={ins001:0,ins002:0,ins003:0,bopp:0};
-    byDay[r.fecha][caja]+=r.cajas; byDay[r.fecha].bopp+=bopp;
+    if(!byDay[r.fecha]) byDay[r.fecha]=mk();
+    byDay[r.fecha][caja]+=r.cajas; byDay[r.fecha].bopp+=bopp; byDay[r.fecha][bt]+=bopp;
     // Week
     const d=new Date(r.fecha); const dow=d.getDay();
     const diff=d.getDate()-dow+(dow===0?-6:1);
     const mon=new Date(r.fecha); mon.setDate(diff);
     const wk=mon.toISOString().slice(0,10);
-    if(!byWeek[wk]) byWeek[wk]={ins001:0,ins002:0,ins003:0,bopp:0};
-    byWeek[wk][caja]+=r.cajas; byWeek[wk].bopp+=bopp;
+    if(!byWeek[wk]) byWeek[wk]=mk();
+    byWeek[wk][caja]+=r.cajas; byWeek[wk].bopp+=bopp; byWeek[wk][bt]+=bopp;
     // Mes
     const m=r.mes||r.fecha.slice(0,7);
-    if(!byMes[m]) byMes[m]={ins001:0,ins002:0,ins003:0,bopp:0};
-    byMes[m][caja]+=r.cajas; byMes[m].bopp+=bopp;
+    if(!byMes[m]) byMes[m]=mk();
+    byMes[m][caja]+=r.cajas; byMes[m].bopp+=bopp; byMes[m][bt]+=bopp;
   });
   return {byDay,byWeek,byMes};
 }
@@ -2959,33 +3055,52 @@ function insDrawBarPeriodo(records){
 
 function insDrawBoppBar(records){
   const {byDay,byWeek,byMes}=insAgg(records);
-  let agg,lblFn;
-  if(INS_VISTA==='diario'){
-    agg=byDay; lblFn=k=>{const p=k.split('-');return p[2]*1+'/'+p[1]*1;};
-  } else if(INS_VISTA==='semanal'){
-    agg=byWeek; lblFn=k=>{const d=new Date(k);return d.getDate()+'/'+(d.getMonth()+1);};
-  } else {
-    agg=byMes;
-    const ML={'2026-04':'Abr','2026-05':'May','2026-06':'Jun','2026-07':'Jul'};
-    lblFn=k=>ML[k]||k.slice(5);
-  }
-  const keys=Object.keys(agg).sort();
-  // BOPP grouped by tipo
-  const boppTostadas=records.filter(r=>insGetCaja(r.producto)==='ins001').reduce((s,r)=>s+r.cajas*insGetBoppKg(r.producto),0);
-  const boppTostaditas=records.filter(r=>insGetCaja(r.producto)==='ins002').reduce((s,r)=>s+r.cajas*insGetBoppKg(r.producto),0);
-  const boppDosH=records.filter(r=>insGetCaja(r.producto)==='ins003').reduce((s,r)=>s+r.cajas*insGetBoppKg(r.producto),0);
+  // Month label helper
+  const mesLbl=k=>{const mn=k.slice(5,7);const MY={' 01':'Ene','02':'Feb','03':'Mar','04':'Abr','05':'May','06':'Jun','07':'Jul','08':'Ago','09':'Sep','10':'Oct','11':'Nov','12':'Dic'};return (MY[mn]||mn)+' '+k.slice(2,4);};
+  // 4 bopp datasets (consistent colors)
+  const BOPPSETS=agg=>[
+    {label:'Tostadas Libera (0.048 kg/u)',  color:'#58a6ff', data:Object.keys(agg).sort().map(k=>+((agg[k].bt||0).toFixed(1)))},
+    {label:'Rebozador (0.056 kg/u)',         color:'#ffa657', data:Object.keys(agg).sort().map(k=>+((agg[k].br||0).toFixed(1)))},
+    {label:'Tostaditas Libera (0.096 kg/u)',color:'#3fb950', data:Object.keys(agg).sort().map(k=>+((agg[k].bti||0).toFixed(1)))},
+    {label:'Dos Hermanos (0.072 kg/u)',      color:'#d29922', data:Object.keys(agg).sort().map(k=>+((agg[k].bd||0).toFixed(1)))},
+  ];
+  // Weekly chart
+  const wkKeys=Object.keys(byWeek).sort();
+  insStackedBar('insBoppSem', wkKeys.map(k=>{const d=new Date(k);return d.getDate()+'/'+(d.getMonth()+1);}), BOPPSETS(byWeek));
+  // Monthly chart
+  const msKeys=Object.keys(byMes).sort();
+  insStackedBar('insBoppMes', msKeys.map(mesLbl), BOPPSETS(byMes));
+  // Total horizontal bar (current filter period)
+  const totBt=records.reduce((s,r)=>insGetBoppTipo(r.producto)==='bt'?s+r.cajas*insGetBoppKg(r.producto):s,0);
+  const totBr=records.reduce((s,r)=>insGetBoppTipo(r.producto)==='br'?s+r.cajas*insGetBoppKg(r.producto):s,0);
+  const totBti=records.reduce((s,r)=>insGetBoppTipo(r.producto)==='bti'?s+r.cajas*insGetBoppKg(r.producto):s,0);
+  const totBd=records.reduce((s,r)=>insGetBoppTipo(r.producto)==='bd'?s+r.cajas*insGetBoppKg(r.producto):s,0);
   insBarH('insBoppProd',
-    ['Tostadas Libera','Tostaditas Libera','Dos Hermanos'],
-    [+boppTostadas.toFixed(1),+boppTostaditas.toFixed(1),+boppDosH.toFixed(1)],
-    ['#58a6ff','#3fb950','#d29922']
+    ['Tostadas Libera','Rebozador','Tostaditas Libera','Dos Hermanos'],
+    [+totBt.toFixed(1),+totBr.toFixed(1),+totBti.toFixed(1),+totBd.toFixed(1)],
+    ['#58a6ff','#ffa657','#3fb950','#d29922']
   );
-  insStackedBar('insBoppBar', keys.map(lblFn), [
-    {label:'Tostadas Libera', color:'#58a6ff', data:keys.map(k=>+((agg[k].bopp||0)*(agg[k].ins001||0)/Math.max(agg[k].ins001+agg[k].ins002+agg[k].ins003,1)).toFixed(2))},
-    {label:'Tostaditas',      color:'#3fb950', data:keys.map(k=>+(0.096*(agg[k].ins002||0)).toFixed(2))},
-    {label:'Dos Hermanos',    color:'#d29922', data:keys.map(k=>+(0.072*(agg[k].ins003||0)).toFixed(2))},
-  ]);
 }
 
+function insPlanRef(val,btn){
+  document.getElementById('insPlanRef').value=val;
+  document.querySelectorAll('.ins-ref-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  insUpdatePlanner();
+}
+function insPlanSetDias(val,btn){
+  document.getElementById('insPlanDias').value=val;
+  document.querySelectorAll('.ins-preset-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  insUpdatePlanner();
+}
+function insPlanAddDias(delta){
+  const inp=document.getElementById('insPlanDias');
+  const v=Math.max(1,Math.min(365,(parseInt(inp.value)||30)+delta));
+  inp.value=v;
+  document.querySelectorAll('.ins-preset-btn').forEach(b=>b.classList.remove('active'));
+  insUpdatePlanner();
+}
 function insUpdatePlanner(){
   const dias_stock=parseInt(document.getElementById('insPlanDias')?.value||30);
   const ref_dias=parseInt(document.getElementById('insPlanRef')?.value||28);
@@ -3000,9 +3115,7 @@ function insUpdatePlanner(){
   const tot002=recs.filter(r=>insGetCaja(r.producto)==='ins002').reduce((s,r)=>s+r.cajas,0);
   const tot003=recs.filter(r=>insGetCaja(r.producto)==='ins003').reduce((s,r)=>s+r.cajas,0);
   const totBp=recs.reduce((s,r)=>s+r.cajas*insGetBoppKg(r.producto),0);
-  // Per working day averages
-  const avg001=tot001/workDays, avg002=tot002/workDays, avg003=tot003/workDays, avgBp=totBp/workDays;
-  // Calendar days adjustment (~5/7 of days are work days)
+  const avg001=tot001/workDays,avg002=tot002/workDays,avg003=tot003/workDays,avgBp=totBp/workDays;
   const cal=dias_stock*(5/7);
   const ord001=Math.ceil(avg001*cal);
   const ord002=Math.ceil(avg002*cal);
@@ -3010,14 +3123,17 @@ function insUpdatePlanner(){
   const ordBp=(avgBp*cal).toFixed(1);
   const g=id=>document.getElementById(id);
   const fmt=n=>Math.round(n).toLocaleString('es-AR');
+  const refLabel=ref_dias===14?'últimas 2 semanas':ref_dias===28?'últimas 4 semanas':'todo el período';
   if(g('ipIns001')) g('ipIns001').textContent=fmt(ord001);
-  if(g('ipIns001Sub')) g('ipIns001Sub').textContent='unidades · prom. '+fmt(avg001)+'/día prod.';
+  if(g('ipIns001Sub')) g('ipIns001Sub').textContent='Promedio diario: '+fmt(Math.round(avg001))+' cajas/día productivo';
   if(g('ipIns002')) g('ipIns002').textContent=fmt(ord002);
-  if(g('ipIns002Sub')) g('ipIns002Sub').textContent='unidades · prom. '+fmt(avg002)+'/día prod.';
+  if(g('ipIns002Sub')) g('ipIns002Sub').textContent='Promedio diario: '+fmt(Math.round(avg002))+' cajas/día productivo';
   if(g('ipIns003')) g('ipIns003').textContent=fmt(ord003);
-  if(g('ipIns003Sub')) g('ipIns003Sub').textContent='unidades · prom. '+fmt(avg003)+'/día prod.';
+  if(g('ipIns003Sub')) g('ipIns003Sub').textContent='Promedio diario: '+fmt(Math.round(avg003))+' cajas/día productivo';
   if(g('ipBopp')) g('ipBopp').textContent=ordBp;
-  if(g('ipBoppSub')) g('ipBoppSub').textContent='kg · prom. '+parseFloat(avgBp).toFixed(1)+' kg/día prod.';
+  if(g('ipBoppSub')) g('ipBoppSub').textContent='Promedio diario: '+parseFloat(avgBp).toFixed(1)+' kg/día productivo';
+  if(g('ipNota')) g('ipNota').textContent='Calculado sobre la base de '+workDays+' días de producción ('+refLabel+') · stock para '+dias_stock+' días calendario';
+  if(g('ipFooter')) g('ipFooter').textContent='✅ Resultado actualizado — si la producción cambia, actualizá el dashboard y recalculá';
 }
 
 function initInsumos(){
