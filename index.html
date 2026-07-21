@@ -406,6 +406,11 @@
   .ins-filter-btn{background:transparent;border:1px solid #30363d;color:#8b949e;padding:5px 14px;border-radius:20px;cursor:pointer;font-size:13px;transition:all .18s}
   .ins-filter-btn.active{background:#1f6feb;border-color:#1f6feb;color:#fff}
   .ins-filter-btn:hover:not(.active){border-color:#58a6ff;color:#58a6ff}
+  #insTooltip{position:fixed;display:none;background:#1e2235;border:1px solid #30363d;border-radius:10px;padding:10px 14px;font-size:12px;color:#e2e8f0;pointer-events:none;z-index:9999;min-width:160px;max-width:260px;box-shadow:0 8px 24px rgba(0,0,0,0.5)}
+  .ittp-head{font-weight:700;font-size:13px;margin-bottom:6px;color:#fff}
+  .ittp-row{display:flex;align-items:center;gap:6px;margin:3px 0;color:#c9d1d9}
+  .ittp-dot{display:inline-block;width:8px;height:8px;border-radius:50%;flex-shrink:0}
+  .ittp-total{margin-top:6px;padding-top:6px;border-top:1px solid #30363d;font-weight:600;color:#fff}
   .ins-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
   .ins-kpi{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:16px 18px}
   .ins-kpi-label{color:#8b949e;font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
@@ -457,12 +462,28 @@
   .ins-plan-card.ins1{border-top:3px solid #58a6ff}
   .ins-plan-card.ins2{border-top:3px solid #3fb950}
   .ins-plan-card.ins3{border-top:3px solid #d29922}
-  .ins-plan-card.bpp{border-top:3px solid #bc8cff;grid-column:1/-1}
+  .ins-bopp-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:12px;margin-top:4px}
+  .ins-bopp-sect-label{color:#bc8cff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;margin-top:18px;margin-bottom:6px;padding-left:2px}
+  .ins-plan-card.bp4{border-top:3px solid #58a6ff}
+  .ins-plan-card.bp5{border-top:3px solid #79c0ff}
+  .ins-plan-card.bp6{border-top:3px solid #a5d6ff}
+  .ins-plan-card.bp7{border-top:3px solid #3fb950}
+  .ins-plan-card.bp8{border-top:3px solid #56d364}
+  .ins-plan-card.bp9{border-top:3px solid #d29922}
+  .ins-plan-card.bp10{border-top:3px solid #e3b341}
+  .ins-plan-card.bp20{border-top:3px solid #ffa657}
   .ins-plan-code{font-family:monospace;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;display:inline-block;margin-bottom:8px}
   .ins-plan-card.ins1 .ins-plan-code{background:#58a6ff22;color:#58a6ff}
   .ins-plan-card.ins2 .ins-plan-code{background:#3fb95022;color:#3fb950}
   .ins-plan-card.ins3 .ins-plan-code{background:#d2992222;color:#d29922}
-  .ins-plan-card.bpp .ins-plan-code{background:#bc8cff22;color:#bc8cff}
+  .ins-plan-card.bp4  .ins-plan-code{background:#58a6ff22;color:#58a6ff}
+  .ins-plan-card.bp5  .ins-plan-code{background:#79c0ff22;color:#79c0ff}
+  .ins-plan-card.bp6  .ins-plan-code{background:#a5d6ff22;color:#a5d6ff}
+  .ins-plan-card.bp7  .ins-plan-code{background:#3fb95022;color:#3fb950}
+  .ins-plan-card.bp8  .ins-plan-code{background:#56d36422;color:#56d364}
+  .ins-plan-card.bp9  .ins-plan-code{background:#d2992222;color:#d29922}
+  .ins-plan-card.bp10 .ins-plan-code{background:#e3b34122;color:#e3b341}
+  .ins-plan-card.bp20 .ins-plan-code{background:#ffa65722;color:#ffa657}
   .ins-plan-name{color:#e6edf3;font-size:13px;font-weight:600;margin-bottom:2px}
   .ins-plan-desc{color:#8b949e;font-size:11px;margin-bottom:14px;line-height:1.4}
   .ins-plan-value{font-size:2.2rem;font-weight:800;line-height:1}
@@ -1172,7 +1193,7 @@
         <span>Resultado — esto es lo que tenés que comprar:</span>
       </div>
       <div class="ins-result-note" id="ipNota">Calculando...</div>
-      <div class="ins-result-grid">
+      <div class="ins-result-grid" style="grid-template-columns:repeat(3,1fr)">
         <div class="ins-plan-card ins1">
           <span class="ins-plan-code">INS001</span>
           <div class="ins-plan-name">Caja Tostadas 140g Libera</div>
@@ -1194,12 +1215,64 @@
           <div><span class="ins-plan-value" id="ipIns003" style="color:#d29922">—</span><span class="ins-plan-unit">unidades</span></div>
           <div class="ins-plan-avg" id="ipIns003Sub">promedio diario: —</div>
         </div>
-        <div class="ins-plan-card bpp">
-          <span class="ins-plan-code">INS004 · INS005 · INS006 · INS007 · INS008 · INS009 · INS010 · INS020</span>
-          <div class="ins-plan-name">BOPP — Papel film</div>
-          <div class="ins-plan-desc">Total de todos los tipos de bobina (por receta)</div>
-          <div><span class="ins-plan-value" id="ipBopp" style="color:#bc8cff">—</span><span class="ins-plan-unit">kg</span></div>
-          <div class="ins-plan-avg" id="ipBoppSub">promedio diario: —</div>
+      </div>
+      <div class="ins-bopp-sect-label">🎞️ Bobinas BOPP — por insumo</div>
+      <div class="ins-bopp-grid">
+        <div class="ins-plan-card bp4">
+          <span class="ins-plan-code">INS004</span>
+          <div class="ins-plan-name">BOPP Tostada Clásica Libera</div>
+          <div class="ins-plan-desc">0.048 kg/caja · 140g</div>
+          <div><span class="ins-plan-value" id="ipINS004" style="color:#58a6ff">—</span><span class="ins-plan-unit">kg</span></div>
+          <div class="ins-plan-avg" id="ipINS004Sub">promedio diario: —</div>
+        </div>
+        <div class="ins-plan-card bp5">
+          <span class="ins-plan-code">INS005</span>
+          <div class="ins-plan-name">BOPP Tostada Dulce Libera</div>
+          <div class="ins-plan-desc">0.048 kg/caja · 140g</div>
+          <div><span class="ins-plan-value" id="ipINS005" style="color:#79c0ff">—</span><span class="ins-plan-unit">kg</span></div>
+          <div class="ins-plan-avg" id="ipINS005Sub">promedio diario: —</div>
+        </div>
+        <div class="ins-plan-card bp6">
+          <span class="ins-plan-code">INS006</span>
+          <div class="ins-plan-name">BOPP Tostada Sin Sal Libera</div>
+          <div class="ins-plan-desc">0.048 kg/caja · 140g</div>
+          <div><span class="ins-plan-value" id="ipINS006" style="color:#a5d6ff">—</span><span class="ins-plan-unit">kg</span></div>
+          <div class="ins-plan-avg" id="ipINS006Sub">promedio diario: —</div>
+        </div>
+        <div class="ins-plan-card bp7">
+          <span class="ins-plan-code">INS007</span>
+          <div class="ins-plan-name">BOPP Tostadita Clásica Libera</div>
+          <div class="ins-plan-desc">0.096 kg/caja · 100g</div>
+          <div><span class="ins-plan-value" id="ipINS007" style="color:#3fb950">—</span><span class="ins-plan-unit">kg</span></div>
+          <div class="ins-plan-avg" id="ipINS007Sub">promedio diario: —</div>
+        </div>
+        <div class="ins-plan-card bp8">
+          <span class="ins-plan-code">INS008</span>
+          <div class="ins-plan-name">BOPP Tostadita Sin Sal Libera</div>
+          <div class="ins-plan-desc">0.096 kg/caja · 100g</div>
+          <div><span class="ins-plan-value" id="ipINS008" style="color:#56d364">—</span><span class="ins-plan-unit">kg</span></div>
+          <div class="ins-plan-avg" id="ipINS008Sub">promedio diario: —</div>
+        </div>
+        <div class="ins-plan-card bp9">
+          <span class="ins-plan-code">INS009</span>
+          <div class="ins-plan-name">BOPP Tostada Clásica 2 Hermanos</div>
+          <div class="ins-plan-desc">0.072 kg/caja · 140g</div>
+          <div><span class="ins-plan-value" id="ipINS009" style="color:#d29922">—</span><span class="ins-plan-unit">kg</span></div>
+          <div class="ins-plan-avg" id="ipINS009Sub">promedio diario: —</div>
+        </div>
+        <div class="ins-plan-card bp10">
+          <span class="ins-plan-code">INS010</span>
+          <div class="ins-plan-name">BOPP Tostada Sin Sal 2 Hermanos</div>
+          <div class="ins-plan-desc">0.072 kg/caja · 140g</div>
+          <div><span class="ins-plan-value" id="ipINS010" style="color:#e3b341">—</span><span class="ins-plan-unit">kg</span></div>
+          <div class="ins-plan-avg" id="ipINS010Sub">promedio diario: —</div>
+        </div>
+        <div class="ins-plan-card bp20">
+          <span class="ins-plan-code">INS020</span>
+          <div class="ins-plan-name">BOPP Rebozador Libera</div>
+          <div class="ins-plan-desc">0.056 kg/caja · 0.35kg</div>
+          <div><span class="ins-plan-value" id="ipINS020" style="color:#ffa657">—</span><span class="ins-plan-unit">kg</span></div>
+          <div class="ins-plan-avg" id="ipINS020Sub">promedio diario: —</div>
         </div>
       </div>
       <div class="ins-plan-footer" id="ipFooter">⚙️ Ajustá los pasos 1 y 2 para recalcular</div>
@@ -2860,6 +2933,15 @@ function insGetBoppKg(prod){
   if(p.includes('2 HERMANOS')||p.includes('HERMANOS')) return 0.072;
   return 0.048;
 }
+function insGetBoppIns(prod){
+  const p=prod.toUpperCase();
+  if(p.includes('REBOZADOR')) return 'INS020';
+  if(p.includes('TOSTADITA')) return p.includes('SIN SAL')?'INS008':'INS007';
+  if(p.includes('2 HERMANOS')||p.includes('HERMANOS')) return p.includes('SIN SAL')?'INS010':'INS009';
+  if(p.includes('DULCE')) return 'INS005';
+  if(p.includes('SIN SAL')) return 'INS006';
+  return 'INS004';
+}
 function insGetRecords(){
   let recs=ALL_RECORDS||[];
   if(INS_PERIODO!=='todos') recs=recs.filter(r=>r.mes===INS_PERIODO);
@@ -3167,21 +3249,17 @@ function insUpdatePlanner(){
   const tot001=recs.filter(r=>insGetCaja(r.producto)==='ins001').reduce((s,r)=>s+r.cajas,0);
   const tot002=recs.filter(r=>insGetCaja(r.producto)==='ins002').reduce((s,r)=>s+r.cajas,0);
   const tot003=recs.filter(r=>insGetCaja(r.producto)==='ins003').reduce((s,r)=>s+r.cajas,0);
-  // Per-type BOPP totals
-  const totBt=recs.reduce((s,r)=>insGetBoppTipo(r.producto)==='bt'?s+r.cajas*insGetBoppKg(r.producto):s,0);
-  const totBr=recs.reduce((s,r)=>insGetBoppTipo(r.producto)==='br'?s+r.cajas*insGetBoppKg(r.producto):s,0);
-  const totBti=recs.reduce((s,r)=>insGetBoppTipo(r.producto)==='bti'?s+r.cajas*insGetBoppKg(r.producto):s,0);
-  const totBd=recs.reduce((s,r)=>insGetBoppTipo(r.producto)==='bd'?s+r.cajas*insGetBoppKg(r.producto):s,0);
+  // Per-INS BOPP totals (one per insumo/código)
+  const BOPP_INS_LIST=['INS004','INS005','INS006','INS007','INS008','INS009','INS010','INS020'];
+  const boppTotals={};
+  BOPP_INS_LIST.forEach(id=>{
+    boppTotals[id]=recs.filter(r=>insGetBoppIns(r.producto)===id).reduce((s,r)=>s+r.cajas*insGetBoppKg(r.producto),0);
+  });
   const avg001=tot001/workDays,avg002=tot002/workDays,avg003=tot003/workDays;
-  const avgBt=totBt/workDays,avgBr=totBr/workDays,avgBti=totBti/workDays,avgBd=totBd/workDays;
   const cal=dias_stock*(5/7);
   const ord001=Math.ceil(avg001*cal);
   const ord002=Math.ceil(avg002*cal);
   const ord003=Math.ceil(avg003*cal);
-  const ordBt=(avgBt*cal).toFixed(1);
-  const ordBr=(avgBr*cal).toFixed(1);
-  const ordBti=(avgBti*cal).toFixed(1);
-  const ordBd=(avgBd*cal).toFixed(1);
   const g=id=>document.getElementById(id);
   const fmt=n=>Math.round(n).toLocaleString('es-AR');
   const fmtKg=n=>parseFloat(n).toLocaleString('es-AR',{minimumFractionDigits:1,maximumFractionDigits:1});
@@ -3192,14 +3270,13 @@ function insUpdatePlanner(){
   if(g('ipIns002Sub')) g('ipIns002Sub').textContent='Promedio diario: '+fmt(Math.round(avg002))+' cajas/día productivo';
   if(g('ipIns003')) g('ipIns003').textContent=fmt(ord003);
   if(g('ipIns003Sub')) g('ipIns003Sub').textContent='Promedio diario: '+fmt(Math.round(avg003))+' cajas/día productivo';
-  if(g('ipBt'))  g('ipBt').textContent=fmtKg(ordBt);
-  if(g('ipBtSub'))  g('ipBtSub').textContent='Promedio diario: '+fmtKg(avgBt)+' kg/día productivo';
-  if(g('ipBr'))  g('ipBr').textContent=fmtKg(ordBr);
-  if(g('ipBrSub'))  g('ipBrSub').textContent='Promedio diario: '+fmtKg(avgBr)+' kg/día productivo';
-  if(g('ipBti')) g('ipBti').textContent=fmtKg(ordBti);
-  if(g('ipBtiSub')) g('ipBtiSub').textContent='Promedio diario: '+fmtKg(avgBti)+' kg/día productivo';
-  if(g('ipBd'))  g('ipBd').textContent=fmtKg(ordBd);
-  if(g('ipBdSub'))  g('ipBdSub').textContent='Promedio diario: '+fmtKg(avgBd)+' kg/día productivo';
+  BOPP_INS_LIST.forEach(id=>{
+    const tot=boppTotals[id];
+    const avg=tot/workDays;
+    const ord=(avg*cal).toFixed(1);
+    if(g('ip'+id)) g('ip'+id).textContent=fmtKg(ord);
+    if(g('ip'+id+'Sub')) g('ip'+id+'Sub').textContent='Promedio diario: '+fmtKg(avg)+' kg/día productivo';
+  });
   if(g('ipNota')) g('ipNota').textContent='Calculado sobre la base de '+workDays+' días de producción ('+refLabel+') · stock para '+dias_stock+' días calendario';
   if(g('ipFooter')) g('ipFooter').textContent='✅ Resultado actualizado — si la producción cambia, actualizá el dashboard y recalculá';
 }
@@ -3251,5 +3328,6 @@ function initInsumos(){
 
 
 </script>
+<div id="insTooltip"></div>
 </body>
 </html>
