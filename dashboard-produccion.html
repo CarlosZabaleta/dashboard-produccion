@@ -647,6 +647,31 @@
       </div>
     </div>
 
+    <!-- Filtro vista -->
+    <div class="filters" style="margin-top:24px">
+      <span class="filter-label">Vista:</span>
+      <button class="filter-btn active prod-vista-btn" onclick="prodSetVista('semanal',this)">Semanal</button>
+      <button class="filter-btn prod-vista-btn" onclick="prodSetVista('mensual',this)">Mensual</button>
+    </div>
+
+    <!-- Stacked bar por período -->
+    <div class="chart-card" style="margin-top:0">
+      <div class="chart-title">Producción por Período — Desglose por Producto</div>
+      <div class="chart-subtitle" id="prodPeriodoSub">Cajas producidas por semana, apiladas por línea de producto</div>
+      <div class="chart-container tall">
+        <canvas id="chartProdPeriodo"></canvas>
+      </div>
+    </div>
+
+    <!-- Línea evolución por producto -->
+    <div class="chart-card">
+      <div class="chart-title">Evolución Semanal por Producto</div>
+      <div class="chart-subtitle" id="prodLineaSub">Tendencia de producción de cada línea a lo largo del tiempo</div>
+      <div class="chart-container tall">
+        <canvas id="chartProdLinea"></canvas>
+      </div>
+    </div>
+
   </div>
 
   <!-- TAB: DIARIO -->
@@ -2007,6 +2032,133 @@ function buildChartProductosBar() {
 }
 
 // ============================================================
+// ============================================================
+// PROD POR PERÍODO: estado + helpers
+// ============================================================
+let PROD_VISTA = 'semanal';
+const PROD_COLORS_MAP = {
+  'TOSTADA CLASICA LIBERA':       '#6c63ff',
+  'TOSTADA DULCE LIBERA':         '#ffa657',
+  'TOSTADA SIN SAL LIBERA':       '#58a6ff',
+  'REBOZADOR LIBERA':             '#d29922',
+  'TOSTADITA CLASICA LIBERA':     '#3fb950',
+  'TOSTADITA SIN SAL LIBERA':     '#56d364',
+  'TOSTADA CLASICA 2 HERMANOS':   '#ff6b6b',
+  'TOSTADA SIN SAL 2 HERMANOS':   '#ffd166',
+};
+const PROD_FALLBACK_COLORS = ['#6c63ff','#00d4aa','#ffd166','#ff6b6b','#58a6ff','#3fb950','#ffa657','#d29922'];
+
+function prodGetWeekKey(fecha){
+  const d=new Date(fecha); const dow=d.getDay();
+  const diff=d.getDate()-dow+(dow===0?-6:1);
+  const m=new Date(fecha); m.setDate(diff);
+  return m.toISOString().slice(0,10);
+}
+function prodPeriodLabel(k){
+  if(PROD_VISTA==='mensual'){
+    const ML={'2026-04':'Abr','2026-05':'May','2026-06':'Jun','2026-07':'Jul'};
+    return ML[k]||k.slice(5);
+  }
+  const d=new Date(k); return d.getDate()+'/'+(d.getMonth()+1);
+}
+function prodAgg(){
+  const byP={};
+  (ALL_RECORDS||[]).forEach(r=>{
+    const k=PROD_VISTA==='semanal'?prodGetWeekKey(r.fecha):(r.mes||r.fecha.slice(0,7));
+    if(!byP[k]) byP[k]={};
+    byP[k][r.producto]=(byP[k][r.producto]||0)+r.cajas;
+  });
+  return byP;
+}
+function prodSetVista(v,btn){
+  PROD_VISTA=v;
+  document.querySelectorAll('.prod-vista-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const sub=PROD_VISTA==='semanal'?'semana':'mes';
+  const el1=document.getElementById('prodPeriodoSub');
+  const el2=document.getElementById('prodLineaSub');
+  if(el1) el1.textContent='Cajas producidas por '+sub+', apiladas por línea de producto';
+  if(el2) el2.textContent='Tendencia de producción de cada línea — vista '+sub;
+  buildChartProdPeriodo();
+  buildChartProdLinea();
+}
+
+function buildChartProdPeriodo(){
+  destroyChart('chartProdPeriodo');
+  if(!ALL_RECORDS||!ALL_RECORDS.length) return;
+  const byP=prodAgg();
+  const keys=Object.keys(byP).sort();
+  const labels=keys.map(prodPeriodLabel);
+  const prods=[...new Set((ALL_RECORDS||[]).map(r=>r.producto))].sort((a,b)=>
+    (PRODUCT_DATA[b]||0)-(PRODUCT_DATA[a]||0)
+  );
+  const datasets=prods.map((prod,i)=>({
+    label: prod.replace(/^TOSTADA /,'').replace(/^TOSTADITA /,'Tostadita '),
+    data: keys.map(k=>byP[k][prod]||0),
+    backgroundColor: PROD_COLORS_MAP[prod]||PROD_FALLBACK_COLORS[i%PROD_FALLBACK_COLORS.length],
+    borderRadius:4, borderSkipped:false
+  }));
+  const ctx=document.getElementById('chartProdPeriodo').getContext('2d');
+  chartInstances['chartProdPeriodo']=new Chart(ctx,{
+    type:'bar',
+    data:{labels,datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,position:'top',labels:{boxWidth:12,padding:12,font:{size:10}}},
+        tooltip:{mode:'index',intersect:false,callbacks:{
+          label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('es-AR')} cajas`,
+          footer:items=>'Total: '+items.reduce((s,i)=>s+i.parsed.y,0).toLocaleString('es-AR')+' cajas'
+        }}
+      },
+      scales:{
+        x:{stacked:true,grid:{display:false},ticks:{font:{size:10}}},
+        y:{stacked:true,grid:{color:'#1e2235'},ticks:{callback:v=>v.toLocaleString('es-AR')}}
+      }
+    }
+  });
+}
+
+function buildChartProdLinea(){
+  destroyChart('chartProdLinea');
+  if(!ALL_RECORDS||!ALL_RECORDS.length) return;
+  const byP=prodAgg();
+  const keys=Object.keys(byP).sort();
+  const labels=keys.map(prodPeriodLabel);
+  const prods=[...new Set((ALL_RECORDS||[]).map(r=>r.producto))].sort((a,b)=>
+    (PRODUCT_DATA[b]||0)-(PRODUCT_DATA[a]||0)
+  );
+  const datasets=prods.map((prod,i)=>{
+    const col=PROD_COLORS_MAP[prod]||PROD_FALLBACK_COLORS[i%PROD_FALLBACK_COLORS.length];
+    return {
+      label: prod.replace(/^TOSTADA /,'').replace(/^TOSTADITA /,'Tostadita '),
+      data: keys.map(k=>byP[k][prod]||0),
+      borderColor:col, backgroundColor:col+'33',
+      borderWidth:2, pointRadius:4, pointHoverRadius:7,
+      fill:false, tension:0.3
+    };
+  });
+  const ctx=document.getElementById('chartProdLinea').getContext('2d');
+  chartInstances['chartProdLinea']=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:true,position:'top',labels:{boxWidth:12,padding:12,font:{size:10}}},
+        tooltip:{mode:'index',intersect:false,callbacks:{
+          label:ctx=>` ${ctx.dataset.label}: ${ctx.parsed.y.toLocaleString('es-AR')} cajas`
+        }}
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10}}},
+        y:{grid:{color:'#1e2235'},ticks:{callback:v=>v.toLocaleString('es-AR')}}
+      }
+    }
+  });
+}
+
+// ============================================================
 // TABLE: PRODUCTOS
 // ============================================================
 function buildTablaProductos() {
@@ -2291,7 +2443,7 @@ function switchTab(name) {
   event.target.classList.add('active');
 
   if      (name === 'resumen')   { buildChartMeses(); buildChartDonut(); buildChartTopDias(); }
-  else if (name === 'productos') { buildChartProductosBar(); buildTablaProductos(); }
+  else if (name === 'productos') { buildChartProductosBar(); buildTablaProductos(); buildChartProdPeriodo(); buildChartProdLinea(); }
   else if (name === 'diario')    { buildChartDiario('todos'); buildChartSemanal(); buildChartAcum(); }
   else if (name === 'detalle')   { buildTablaDetalle('', ''); }
   else if (name === 'kg')        { buildChartKGDiario('todos'); buildChartKGMes(); buildChartKGSemanal(); buildChartKGAcum(); }
