@@ -9,7 +9,315 @@
 <title>Dashboard de Producción</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+CiAgPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNiIgZmlsbD0iIzBkMTExNyIvPgogIDxyZWN0IHg9IjIuNSIgeT0iMjEiIHdpZHRoPSI2LjUiIGhlaWdodD0iOC41IiByeD0iMS41IiBmaWxsPSIjMWY2ZmViIi8+CiAgPHJlY3QgeD0iMTIuNSIgeT0iMTEiIHdpZHRoPSI2LjUiIGhlaWdodD0iMTguNSIgcng9IjEuNSIgZmlsbD0iIzU4YTZmZiIvPgogIDxyZWN0IHg9IjIyLjUiIHk9IjE2IiB3aWR0aD0iNi41IiBoZWlnaHQ9IjEzLjUiIHJ4PSIxLjUiIGZpbGw9IiMzODhiZmQiLz4KICA8bGluZSB4MT0iMiIgeTE9IjMwIiB4Mj0iMzAiIHkyPSIzMCIgc3Ryb2tlPSIjMzAzNjNkIiBzdHJva2Utd2lkdGg9IjEuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+CiAgPHBvbHlsaW5lIHBvaW50cz0iNS43NSwxOSAxNS43NSw5LjUgMjUuNzUsMTQuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjM2ZiOTUwIiBzdHJva2Utd2lkdGg9IjEuOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPg==">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js">
+// ============================================================
+// INSUMOS TAB
+// ============================================================
+// Box type by product (from RECETAS sheet)
+function insGetCaja(prod){
+  const p=prod.toUpperCase();
+  if(p.includes('TOSTADITA')) return 'ins002';
+  if(p.includes('2 HERMANOS')||p.includes('HERMANOS')) return 'ins003';
+  return 'ins001'; // Tostadas Libera + Rebozador
+}
+function insGetBoppKg(prod){
+  const p=prod.toUpperCase();
+  if(p.includes('TOSTADITA')) return 0.096;
+  if(p.includes('REBOZADOR')) return 0.056;
+  if(p.includes('2 HERMANOS')||p.includes('HERMANOS')) return 0.072;
+  return 0.048;
+}
+function insGetRecords(){
+  let recs=ALL_RECORDS||[];
+  if(INS_PERIODO!=='todos') recs=recs.filter(r=>r.mes===INS_PERIODO);
+  if(INS_MARCA==='libera') recs=recs.filter(r=>insGetCaja(r.producto)!=='ins003');
+  if(INS_MARCA==='dos_hermanos') recs=recs.filter(r=>insGetCaja(r.producto)==='ins003');
+  return recs;
+}
+function insFiltrar(p,btn){
+  INS_PERIODO=p;
+  btn.closest('.ins-period-group').querySelectorAll('.ins-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  initInsumos();
+}
+function insMarca(m,btn){
+  INS_MARCA=m;
+  btn.closest('.ins-marca-group').querySelectorAll('.ins-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  initInsumos();
+}
+function insVista(v,btn){
+  INS_VISTA=v;
+  document.querySelectorAll('.ins-vista-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const recs=insGetRecords();
+  insDrawBarPeriodo(recs);
+  insDrawBoppBar(recs);
+}
+
+// ─── Canvas helpers ───
+function insCtx(id){
+  const cv=document.getElementById(id); if(!cv) return null;
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.offsetWidth||cv.clientWidth||600;
+  const H=parseInt(cv.getAttribute('height')||220);
+  cv.width=W*dpr; cv.height=H*dpr;
+  const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr);
+  return {ctx,W,H};
+}
+
+function insStackedBar(id,labels,series){
+  const c=insCtx(id); if(!c) return;
+  const {ctx,W,H}=c;
+  const pad={t:28,r:16,b:38,l:44};
+  const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+  ctx.clearRect(0,0,W,H);
+  const n=labels.length; if(!n) return;
+  const totals=labels.map((_,i)=>series.reduce((s,sr)=>s+(sr.data[i]||0),0));
+  const max=Math.max(...totals,1)*1.12;
+  const barW=Math.max(4,Math.min(cW/n*0.7,40));
+  const gap=cW/n;
+  // Grid
+  [0,.25,.5,.75,1].forEach(f=>{
+    const y=pad.t+cH*(1-f);
+    ctx.strokeStyle='rgba(255,255,255,0.06)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(pad.l+cW,y);ctx.stroke();
+    const v=max*f;
+    ctx.fillStyle='rgba(255,255,255,0.35)';ctx.font='9px Inter,sans-serif';ctx.textAlign='right';
+    ctx.fillText(v>=1000?Math.round(v/1000)+'k':Math.round(v),pad.l-4,y+3);
+  });
+  // Bars
+  labels.forEach((lbl,i)=>{
+    const x=pad.l+i*gap+gap/2-barW/2;
+    let yBase=pad.t+cH;
+    series.forEach(sr=>{
+      const v=sr.data[i]||0; if(!v) return;
+      const bH=(v/max)*cH;
+      ctx.fillStyle=sr.color; ctx.fillRect(x,yBase-bH,barW,bH);
+      yBase-=bH;
+    });
+    ctx.fillStyle='rgba(255,255,255,0.45)';ctx.font='9px Inter,sans-serif';ctx.textAlign='center';
+    ctx.fillText(lbl,pad.l+i*gap+gap/2,H-pad.b+14);
+  });
+  // Legend
+  let lx=pad.l;
+  series.forEach(sr=>{
+    ctx.fillStyle=sr.color; ctx.fillRect(lx,8,9,9);
+    ctx.fillStyle='rgba(255,255,255,0.6)';ctx.font='9px Inter,sans-serif';ctx.textAlign='left';
+    ctx.fillText(sr.label,lx+12,17);
+    lx+=ctx.measureText(sr.label).width+24;
+  });
+}
+
+function insBarH(id,labels,values,colors){
+  const c=insCtx(id); if(!c) return;
+  const {ctx,W,H}=c;
+  const pad={t:6,r:64,b:6,l:150};
+  const cW=W-pad.l-pad.r, cH=H-pad.t-pad.b;
+  ctx.clearRect(0,0,W,H);
+  const n=labels.length; if(!n) return;
+  const max=Math.max(...values,1);
+  const bH2=Math.min(cH/n*0.72,20);
+  const gap=cH/n;
+  labels.forEach((lbl,i)=>{
+    const y=pad.t+i*gap+gap/2-bH2/2;
+    const bW=(values[i]/max)*cW;
+    ctx.fillStyle='rgba(255,255,255,0.04)'; ctx.fillRect(pad.l,y,cW,bH2);
+    ctx.fillStyle=Array.isArray(colors)?colors[i%colors.length]:colors;
+    ctx.fillRect(pad.l,y,bW,bH2);
+    const truncLbl=lbl.length>22?lbl.substring(0,20)+'…':lbl;
+    ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='11px Inter,sans-serif';ctx.textAlign='right';
+    ctx.fillText(truncLbl,pad.l-6,y+bH2/2+4);
+    ctx.fillStyle='rgba(255,255,255,0.5)';ctx.font='10px Inter,sans-serif';ctx.textAlign='left';
+    ctx.fillText(Math.round(values[i]).toLocaleString('es-AR'),pad.l+bW+5,y+bH2/2+4);
+  });
+}
+
+function insDonut(id,data){
+  const c=insCtx(id); if(!c) return;
+  const {ctx,W,H}=c;
+  ctx.clearRect(0,0,W,H);
+  const total=data.reduce((s,d)=>s+d.v,0); if(!total) return;
+  const cx=W*0.42, cy=H/2, r=Math.min(cx,cy)*0.78;
+  let angle=-Math.PI/2;
+  data.forEach(d=>{
+    const sweep=(d.v/total)*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+sweep);ctx.closePath();
+    ctx.fillStyle=d.color;ctx.fill();
+    ctx.strokeStyle='#0d1117';ctx.lineWidth=2.5;ctx.stroke();
+    angle+=sweep;
+  });
+  ctx.beginPath();ctx.arc(cx,cy,r*0.54,0,Math.PI*2);ctx.fillStyle='#161b22';ctx.fill();
+  ctx.fillStyle='#e6edf3';ctx.font='bold 15px Inter,sans-serif';ctx.textAlign='center';
+  ctx.fillText(Math.round(total).toLocaleString('es-AR'),cx,cy+2);
+  ctx.fillStyle='#8b949e';ctx.font='10px Inter,sans-serif';ctx.fillText('cajas',cx,cy+14);
+  // Legend right
+  let ly=H/2-(data.length*26)/2;
+  const lx=W*0.72;
+  data.forEach(d=>{
+    ctx.fillStyle=d.color;ctx.fillRect(lx,ly,10,10);
+    ctx.fillStyle='rgba(255,255,255,0.7)';ctx.font='11px Inter,sans-serif';ctx.textAlign='left';
+    ctx.fillText(d.label,lx+14,ly+10);
+    ctx.fillStyle='rgba(255,255,255,0.45)';ctx.font='9px Inter,sans-serif';
+    ctx.fillText(((d.v/total)*100).toFixed(1)+'%  '+Math.round(d.v).toLocaleString('es-AR'),lx+14,ly+21);
+    ly+=32;
+  });
+}
+
+// ─── Aggregation ────────────────────────────────────────────────────────────
+function insAgg(records){
+  const byDay={},byWeek={},byMes={};
+  records.forEach(r=>{
+    const caja=insGetCaja(r.producto), bopp=r.cajas*insGetBoppKg(r.producto);
+    // Day
+    if(!byDay[r.fecha]) byDay[r.fecha]={ins001:0,ins002:0,ins003:0,bopp:0};
+    byDay[r.fecha][caja]+=r.cajas; byDay[r.fecha].bopp+=bopp;
+    // Week
+    const d=new Date(r.fecha); const dow=d.getDay();
+    const diff=d.getDate()-dow+(dow===0?-6:1);
+    const mon=new Date(r.fecha); mon.setDate(diff);
+    const wk=mon.toISOString().slice(0,10);
+    if(!byWeek[wk]) byWeek[wk]={ins001:0,ins002:0,ins003:0,bopp:0};
+    byWeek[wk][caja]+=r.cajas; byWeek[wk].bopp+=bopp;
+    // Mes
+    const m=r.mes||r.fecha.slice(0,7);
+    if(!byMes[m]) byMes[m]={ins001:0,ins002:0,ins003:0,bopp:0};
+    byMes[m][caja]+=r.cajas; byMes[m].bopp+=bopp;
+  });
+  return {byDay,byWeek,byMes};
+}
+
+function insDrawBarPeriodo(records){
+  const {byDay,byWeek,byMes}=insAgg(records);
+  let agg,lblFn;
+  if(INS_VISTA==='diario'){
+    agg=byDay;
+    lblFn=k=>{const p=k.split('-');return p[2]*1+'/'+p[1]*1;};
+  } else if(INS_VISTA==='semanal'){
+    agg=byWeek;
+    lblFn=k=>{const d=new Date(k);return d.getDate()+'/'+(d.getMonth()+1);};
+  } else {
+    agg=byMes;
+    const ML={'2026-04':'Abr','2026-05':'May','2026-06':'Jun','2026-07':'Jul'};
+    lblFn=k=>ML[k]||k.slice(5);
+  }
+  const keys=Object.keys(agg).sort();
+  insStackedBar('insBarPeriodo', keys.map(lblFn), [
+    {label:'Tostadas Libera (INS001)',  color:'#58a6ff', data:keys.map(k=>agg[k].ins001||0)},
+    {label:'Tostaditas Libera (INS002)',color:'#3fb950', data:keys.map(k=>agg[k].ins002||0)},
+    {label:'Dos Hermanos (INS003)',     color:'#d29922', data:keys.map(k=>agg[k].ins003||0)},
+  ]);
+}
+
+function insDrawBoppBar(records){
+  const {byDay,byWeek,byMes}=insAgg(records);
+  let agg,lblFn;
+  if(INS_VISTA==='diario'){
+    agg=byDay; lblFn=k=>{const p=k.split('-');return p[2]*1+'/'+p[1]*1;};
+  } else if(INS_VISTA==='semanal'){
+    agg=byWeek; lblFn=k=>{const d=new Date(k);return d.getDate()+'/'+(d.getMonth()+1);};
+  } else {
+    agg=byMes;
+    const ML={'2026-04':'Abr','2026-05':'May','2026-06':'Jun','2026-07':'Jul'};
+    lblFn=k=>ML[k]||k.slice(5);
+  }
+  const keys=Object.keys(agg).sort();
+  // BOPP grouped by tipo
+  const boppTostadas=records.filter(r=>insGetCaja(r.producto)==='ins001').reduce((s,r)=>s+r.cajas*insGetBoppKg(r.producto),0);
+  const boppTostaditas=records.filter(r=>insGetCaja(r.producto)==='ins002').reduce((s,r)=>s+r.cajas*insGetBoppKg(r.producto),0);
+  const boppDosH=records.filter(r=>insGetCaja(r.producto)==='ins003').reduce((s,r)=>s+r.cajas*insGetBoppKg(r.producto),0);
+  insBarH('insBoppProd',
+    ['Tostadas Libera','Tostaditas Libera','Dos Hermanos'],
+    [+boppTostadas.toFixed(1),+boppTostaditas.toFixed(1),+boppDosH.toFixed(1)],
+    ['#58a6ff','#3fb950','#d29922']
+  );
+  insStackedBar('insBoppBar', keys.map(lblFn), [
+    {label:'Tostadas Libera', color:'#58a6ff', data:keys.map(k=>+((agg[k].bopp||0)*(agg[k].ins001||0)/Math.max(agg[k].ins001+agg[k].ins002+agg[k].ins003,1)).toFixed(2))},
+    {label:'Tostaditas',      color:'#3fb950', data:keys.map(k=>+(0.096*(agg[k].ins002||0)).toFixed(2))},
+    {label:'Dos Hermanos',    color:'#d29922', data:keys.map(k=>+(0.072*(agg[k].ins003||0)).toFixed(2))},
+  ]);
+}
+
+function insUpdatePlanner(){
+  const dias_stock=parseInt(document.getElementById('insPlanDias')?.value||30);
+  const ref_dias=parseInt(document.getElementById('insPlanRef')?.value||28);
+  let recs=insGetRecords();
+  if(ref_dias>0){
+    const allDates=[...new Set(recs.map(r=>r.fecha))].sort();
+    const cutoff=allDates.length>0?allDates[Math.max(0,allDates.length-ref_dias)]:null;
+    if(cutoff) recs=recs.filter(r=>r.fecha>=cutoff);
+  }
+  const workDays=new Set(recs.map(r=>r.fecha)).size||1;
+  const tot001=recs.filter(r=>insGetCaja(r.producto)==='ins001').reduce((s,r)=>s+r.cajas,0);
+  const tot002=recs.filter(r=>insGetCaja(r.producto)==='ins002').reduce((s,r)=>s+r.cajas,0);
+  const tot003=recs.filter(r=>insGetCaja(r.producto)==='ins003').reduce((s,r)=>s+r.cajas,0);
+  const totBp=recs.reduce((s,r)=>s+r.cajas*insGetBoppKg(r.producto),0);
+  // Per working day averages
+  const avg001=tot001/workDays, avg002=tot002/workDays, avg003=tot003/workDays, avgBp=totBp/workDays;
+  // Calendar days adjustment (~5/7 of days are work days)
+  const cal=dias_stock*(5/7);
+  const ord001=Math.ceil(avg001*cal);
+  const ord002=Math.ceil(avg002*cal);
+  const ord003=Math.ceil(avg003*cal);
+  const ordBp=(avgBp*cal).toFixed(1);
+  const g=id=>document.getElementById(id);
+  const fmt=n=>Math.round(n).toLocaleString('es-AR');
+  if(g('ipIns001')) g('ipIns001').textContent=fmt(ord001);
+  if(g('ipIns001Sub')) g('ipIns001Sub').textContent='unidades · prom. '+fmt(avg001)+'/día prod.';
+  if(g('ipIns002')) g('ipIns002').textContent=fmt(ord002);
+  if(g('ipIns002Sub')) g('ipIns002Sub').textContent='unidades · prom. '+fmt(avg002)+'/día prod.';
+  if(g('ipIns003')) g('ipIns003').textContent=fmt(ord003);
+  if(g('ipIns003Sub')) g('ipIns003Sub').textContent='unidades · prom. '+fmt(avg003)+'/día prod.';
+  if(g('ipBopp')) g('ipBopp').textContent=ordBp;
+  if(g('ipBoppSub')) g('ipBoppSub').textContent='kg · prom. '+parseFloat(avgBp).toFixed(1)+' kg/día prod.';
+}
+
+function initInsumos(){
+  const recs=insGetRecords();
+  const tot001=recs.filter(r=>insGetCaja(r.producto)==='ins001').reduce((s,r)=>s+r.cajas,0);
+  const tot002=recs.filter(r=>insGetCaja(r.producto)==='ins002').reduce((s,r)=>s+r.cajas,0);
+  const tot003=recs.filter(r=>insGetCaja(r.producto)==='ins003').reduce((s,r)=>s+r.cajas,0);
+  const totBp=recs.reduce((s,r)=>s+r.cajas*insGetBoppKg(r.producto),0);
+  const total=tot001+tot002+tot003;
+  const dias=new Set(recs.map(r=>r.fecha)).size||1;
+  const g=id=>document.getElementById(id);
+  const fmt=n=>Math.round(n).toLocaleString('es-AR');
+  const pct=n=>total?((n/total)*100).toFixed(0)+'% del total':'—';
+  if(g('ikTotal')) g('ikTotal').textContent=fmt(total);
+  if(g('ikTotalSub')) g('ikTotalSub').textContent=dias+' días producidos';
+  if(g('ikIns001')) g('ikIns001').textContent=fmt(tot001);
+  if(g('ikIns001Sub')) g('ikIns001Sub').textContent=pct(tot001);
+  if(g('ikIns002')) g('ikIns002').textContent=fmt(tot002);
+  if(g('ikIns002Sub')) g('ikIns002Sub').textContent=pct(tot002);
+  if(g('ikIns003')) g('ikIns003').textContent=fmt(tot003);
+  if(g('ikIns003Sub')) g('ikIns003Sub').textContent=pct(tot003);
+  if(g('ikBopp')) g('ikBopp').textContent=totBp.toFixed(0);
+  if(g('ikBoppSub')) g('ikBoppSub').textContent='kg totales período';
+  // Charts
+  insDrawBarPeriodo(recs);
+  // Products bar
+  const byProd={};
+  recs.forEach(r=>{
+    if(!byProd[r.producto]) byProd[r.producto]=0;
+    byProd[r.producto]+=r.cajas;
+  });
+  const sorted=Object.entries(byProd).sort((a,b)=>b[1]-a[1]);
+  const COLS={ins001:'#58a6ff',ins002:'#3fb950',ins003:'#d29922'};
+  insBarH('insBarProductos',
+    sorted.map(([p])=>p.replace('TOSTADA ','').replace('TOSTADITA ','✦ ')),
+    sorted.map(([,v])=>v),
+    sorted.map(([p])=>COLS[insGetCaja(p)])
+  );
+  insDonut('insDonut',[
+    {label:'Tostadas Libera', v:tot001, color:'#58a6ff'},
+    {label:'Tostaditas Libera',v:tot002,color:'#3fb950'},
+    {label:'Dos Hermanos',    v:tot003, color:'#d29922'},
+  ]);
+  insDrawBoppBar(recs);
+  insUpdatePlanner();
+}
+
+</script>
 <style>
   :root {
     --bg: #0f1117;
@@ -397,6 +705,48 @@
   .scrap-tab .scr-amber{ background:#2d230a; color:#d29922; }
   .scrap-tab .scr-blue { background:#0f1f33; color:#79c0ff; }
   @media(max-width:700px){.scrap-tab .scr-kpi-row,.scrap-tab .scr-grid-2{grid-template-columns:1fr 1fr;}}
+
+  /* ===== INSUMOS TAB ===== */
+  .ins-tab{padding:24px}
+  .ins-filter-bar{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+  .ins-filter-label{color:#8b949e;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+  .ins-filter-sep{width:1px;height:20px;background:#30363d;margin:0 6px;flex-shrink:0}
+  .ins-filter-btn{background:transparent;border:1px solid #30363d;color:#8b949e;padding:5px 14px;border-radius:20px;cursor:pointer;font-size:13px;transition:all .18s}
+  .ins-filter-btn.active{background:#1f6feb;border-color:#1f6feb;color:#fff}
+  .ins-filter-btn:hover:not(.active){border-color:#58a6ff;color:#58a6ff}
+  .ins-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+  .ins-kpi{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:16px 18px}
+  .ins-kpi-label{color:#8b949e;font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+  .ins-kpi-value{font-size:1.7rem;font-weight:700;line-height:1}
+  .ins-kpi-sub{color:#8b949e;font-size:11px;margin-top:4px}
+  .ins-section-title{font-size:14px;font-weight:700;color:#e6edf3;margin:24px 0 14px;padding-bottom:8px;border-bottom:2px solid #30363d;display:flex;align-items:center;gap:8px}
+  .ins-section-title.bopp{border-bottom-color:#d29922}
+  .ins-section-title.plan{border-bottom-color:#3fb950}
+  .ins-charts-2col{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+  .ins-chart-full{display:grid;grid-template-columns:1fr;gap:18px;margin-bottom:18px}
+  @media(max-width:900px){.ins-charts-2col{grid-template-columns:1fr}}
+  .ins-chart-box{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:18px}
+  .ins-chart-box h4{color:#8b949e;font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin:0 0 12px}
+  .ins-chart-box canvas{width:100%!important;display:block}
+  .ins-vista-bar{display:flex;gap:6px;margin-bottom:16px}
+  .ins-vista-btn{background:transparent;border:1px solid #30363d;color:#8b949e;padding:4px 12px;border-radius:6px;cursor:pointer;font-size:12px;transition:all .15s}
+  .ins-vista-btn.active{background:#21262d;border-color:#58a6ff;color:#58a6ff}
+  .ins-planner{background:#161b22;border:1px solid #3fb950;border-radius:12px;padding:22px}
+  .ins-planner-controls{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+  .ins-planner-controls label{color:#8b949e;font-size:13px}
+  .ins-planner-controls input[type=number]{background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:6px 10px;border-radius:8px;font-size:16px;font-weight:700;width:72px;text-align:center}
+  .ins-planner-controls select{background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:6px 10px;border-radius:8px;font-size:13px}
+  .ins-planner-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+  .ins-plan-card{background:#0d1117;border:1px solid #30363d;border-radius:10px;padding:16px 18px}
+  .ins-plan-card.ins1{border-left:3px solid #58a6ff}
+  .ins-plan-card.ins2{border-left:3px solid #3fb950}
+  .ins-plan-card.ins3{border-left:3px solid #d29922}
+  .ins-plan-card.bpp{border-left:3px solid #bc8cff}
+  .ins-plan-label{color:#8b949e;font-size:11px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+  .ins-plan-code{color:#30363d;font-size:10px;margin-bottom:2px;font-family:monospace}
+  .ins-plan-value{font-size:1.9rem;font-weight:700;line-height:1.1}
+  .ins-plan-sub{color:#8b949e;font-size:11px;margin-top:4px}
+
 </style>
 </head>
 <body>
@@ -428,6 +778,7 @@
   <button class="tab" onclick="switchTab('kg')">⚖️ KG Producidos</button>
   <button class="tab" onclick="switchTab('logistica')">🚚 Logística</button>
   <button class="tab" onclick="switchTab('scrap')">♻️ Scrap</button>
+  <button class="tab" onclick="switchTab('insumos')">📋 Insumos</button>
 </div>
 
 <div class="content">
@@ -950,6 +1301,135 @@
 
   </div>
 
+</div>
+
+<!-- TAB: INSUMOS -->
+<div id="tab-insumos" class="tab-panel">
+<div class="ins-tab">
+
+  <div class="ins-filter-bar">
+    <span class="ins-filter-label">Período:</span>
+    <div class="ins-period-group" style="display:flex;gap:6px">
+      <button class="ins-filter-btn active" onclick="insFiltrar('todos',this)">Todos</button>
+      <button class="ins-filter-btn" onclick="insFiltrar('2026-04',this)">Abril 2026</button>
+      <button class="ins-filter-btn" onclick="insFiltrar('2026-05',this)">Mayo 2026</button>
+      <button class="ins-filter-btn" onclick="insFiltrar('2026-06',this)">Junio 2026</button>
+    </div>
+    <div class="ins-filter-sep"></div>
+    <span class="ins-filter-label">Marca:</span>
+    <div class="ins-marca-group" style="display:flex;gap:6px">
+      <button class="ins-filter-btn active" onclick="insMarca('todas',this)">Todas</button>
+      <button class="ins-filter-btn" onclick="insMarca('libera',this)">Libera</button>
+      <button class="ins-filter-btn" onclick="insMarca('dos_hermanos',this)">Dos Hermanos</button>
+    </div>
+  </div>
+
+  <div class="ins-kpi-row">
+    <div class="ins-kpi">
+      <div class="ins-kpi-label">📦 Total Cajas</div>
+      <div class="ins-kpi-value" id="ikTotal" style="color:#58a6ff">—</div>
+      <div class="ins-kpi-sub" id="ikTotalSub"></div>
+    </div>
+    <div class="ins-kpi" style="border-left:3px solid #58a6ff">
+      <div class="ins-kpi-label">📦 INS001 · Tostadas Libera</div>
+      <div class="ins-kpi-value" id="ikIns001" style="color:#58a6ff">—</div>
+      <div class="ins-kpi-sub" id="ikIns001Sub"></div>
+    </div>
+    <div class="ins-kpi" style="border-left:3px solid #3fb950">
+      <div class="ins-kpi-label">📦 INS002 · Tostaditas Libera</div>
+      <div class="ins-kpi-value" id="ikIns002" style="color:#3fb950">—</div>
+      <div class="ins-kpi-sub" id="ikIns002Sub"></div>
+    </div>
+    <div class="ins-kpi" style="border-left:3px solid #d29922">
+      <div class="ins-kpi-label">📦 INS003 · Dos Hermanos</div>
+      <div class="ins-kpi-value" id="ikIns003" style="color:#d29922">—</div>
+      <div class="ins-kpi-sub" id="ikIns003Sub"></div>
+    </div>
+    <div class="ins-kpi" style="border-left:3px solid #bc8cff">
+      <div class="ins-kpi-label">🎞️ BOPP Total (kg receta)</div>
+      <div class="ins-kpi-value" id="ikBopp" style="color:#bc8cff">—</div>
+      <div class="ins-kpi-sub" id="ikBoppSub"></div>
+    </div>
+  </div>
+
+  <div class="ins-section-title">📊 Consumo de Cajas por Período</div>
+  <div class="ins-vista-bar">
+    <button class="ins-vista-btn" onclick="insVista('diario',this)">Diario</button>
+    <button class="ins-vista-btn active" onclick="insVista('semanal',this)">Semanal</button>
+    <button class="ins-vista-btn" onclick="insVista('mensual',this)">Mensual</button>
+  </div>
+
+  <div class="ins-chart-full">
+    <div class="ins-chart-box">
+      <h4>Cajas producidas — INS001 Tostadas Libera · INS002 Tostaditas · INS003 Dos Hermanos</h4>
+      <canvas id="insBarPeriodo" height="220"></canvas>
+    </div>
+  </div>
+
+  <div class="ins-charts-2col">
+    <div class="ins-chart-box">
+      <h4>Cajas por Producto — Ranking</h4>
+      <canvas id="insBarProductos" height="260"></canvas>
+    </div>
+    <div class="ins-chart-box">
+      <h4>Distribución por Tipo de Caja</h4>
+      <canvas id="insDonut" height="260"></canvas>
+    </div>
+  </div>
+
+  <div class="ins-section-title bopp">🎞️ Consumo de BOPP (Papel)</div>
+  <div class="ins-charts-2col">
+    <div class="ins-chart-box">
+      <h4>BOPP por período (kg según receta)</h4>
+      <canvas id="insBoppBar" height="200"></canvas>
+    </div>
+    <div class="ins-chart-box">
+      <h4>BOPP por tipo de producto (kg)</h4>
+      <canvas id="insBoppProd" height="200"></canvas>
+    </div>
+  </div>
+
+  <div class="ins-section-title plan">🛒 Planificador de Compras</div>
+  <div class="ins-planner">
+    <div class="ins-planner-controls">
+      <label>Referencia:</label>
+      <select id="insPlanRef" onchange="insUpdatePlanner()">
+        <option value="14">Últimas 2 semanas</option>
+        <option value="28" selected>Últimas 4 semanas</option>
+        <option value="0">Todo el período</option>
+      </select>
+      <label>Días de stock:</label>
+      <input type="number" id="insPlanDias" value="30" min="1" max="365" oninput="insUpdatePlanner()">
+    </div>
+    <div class="ins-planner-grid">
+      <div class="ins-plan-card ins1">
+        <div class="ins-plan-code">INS001</div>
+        <div class="ins-plan-label">Caja Tostadas 140g Libera</div>
+        <div class="ins-plan-value" id="ipIns001" style="color:#58a6ff">—</div>
+        <div class="ins-plan-sub" id="ipIns001Sub">unidades</div>
+      </div>
+      <div class="ins-plan-card ins2">
+        <div class="ins-plan-code">INS002</div>
+        <div class="ins-plan-label">Caja Tostaditas 100g Libera</div>
+        <div class="ins-plan-value" id="ipIns002" style="color:#3fb950">—</div>
+        <div class="ins-plan-sub" id="ipIns002Sub">unidades</div>
+      </div>
+      <div class="ins-plan-card ins3">
+        <div class="ins-plan-code">INS003</div>
+        <div class="ins-plan-label">Caja Tostadas 140g Dos Hermanos</div>
+        <div class="ins-plan-value" id="ipIns003" style="color:#d29922">—</div>
+        <div class="ins-plan-sub" id="ipIns003Sub">unidades</div>
+      </div>
+      <div class="ins-plan-card bpp">
+        <div class="ins-plan-code">INS004–INS010+INS020</div>
+        <div class="ins-plan-label">BOPP Total (papel film)</div>
+        <div class="ins-plan-value" id="ipBopp" style="color:#bc8cff">—</div>
+        <div class="ins-plan-sub" id="ipBoppSub">kg estimados</div>
+      </div>
+    </div>
+  </div>
+
+</div>
 </div>
 
 <script>
@@ -1967,6 +2447,7 @@ function switchTab(name) {
   else if (name === 'kg')        { buildChartKGDiario('todos'); buildChartKGMes(); buildChartKGSemanal(); buildChartKGAcum(); }
   else if (name === 'logistica') { initLogistica(); }
   else if (name === 'scrap')     { initScrap(); }
+  else if (name === 'insumos')  { initInsumos(); }
 }
 
 function filtrarKGMes(mes, btn) {
@@ -2001,6 +2482,8 @@ let LOG_SEMANAS = [];
 let LOG_CLIENTES_MES = [];
 let LOG_KPI_MES = {};
 let LOG_REMITOS = [];
+// INSUMOS STATE
+let INS_PERIODO="todos",INS_MARCA="todas",INS_VISTA="semanal";
 const LOG_HIT_ZONES={},LOG_REDRAW_FNS={},LOG_TT_ACTIVE={};
 function logAttachTooltip(id){const canvas=document.getElementById(id);if(!canvas||canvas._ltt)return;canvas._ltt=true;canvas.addEventListener('mousemove',function(e){const rect=canvas.getBoundingClientRect();const mx=e.clientX-rect.left,my=e.clientY-rect.top;let hit=null;for(const z of(LOG_HIT_ZONES[id]||[])){if(mx>=z.x&&mx<=z.x+z.w&&my>=z.y&&my<=z.y+z.h){hit=z;break;}}const was=LOG_TT_ACTIVE[id];if(hit){canvas.style.cursor='crosshair';if(LOG_REDRAW_FNS[id])LOG_REDRAW_FNS[id]();const ctx=canvas.getContext('2d');logDrawTT(ctx,hit.x+hit.w/2,hit.y,hit.label,hit.value,canvas.getBoundingClientRect().width);LOG_TT_ACTIVE[id]=true;}else{canvas.style.cursor='default';if(was){if(LOG_REDRAW_FNS[id])LOG_REDRAW_FNS[id]();}LOG_TT_ACTIVE[id]=false;}});canvas.addEventListener('mouseleave',function(){if(LOG_TT_ACTIVE[id]){if(LOG_REDRAW_FNS[id])LOG_REDRAW_FNS[id]();}LOG_TT_ACTIVE[id]=false;canvas.style.cursor='default';});}
 function logDrawTT(ctx,cx,topY,label,value,canvasW){const v1=value.toLocaleString('es-AR')+' cajas',v2=label;ctx.font='bold 12px sans-serif';const tw1=ctx.measureText(v1).width;ctx.font='10px sans-serif';const tw2=ctx.measureText(v2).width;const bw=Math.max(tw1,tw2)+22,bh=38;let bx=cx-bw/2,by=topY-bh-10;if(bx<4)bx=4;if(bx+bw>canvasW-4)bx=canvasW-bw-4;if(by<4)by=topY+10;ctx.save();ctx.shadowColor='rgba(0,0,0,.55)';ctx.shadowBlur=10;ctx.shadowOffsetY=3;logRRect(ctx,bx,by,bw,bh,6);ctx.fillStyle='#1c2333';ctx.fill();ctx.shadowBlur=0;ctx.shadowOffsetY=0;ctx.strokeStyle='#388bfd';ctx.lineWidth=1;ctx.stroke();ctx.font='bold 12px sans-serif';ctx.fillStyle='#e6edf3';ctx.textAlign='center';ctx.textBaseline='top';ctx.fillText(v1,bx+bw/2,by+6);ctx.font='10px sans-serif';ctx.fillStyle='#8b949e';ctx.fillText(v2,bx+bw/2,by+21);ctx.restore();}
